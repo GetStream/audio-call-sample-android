@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "749174240787",
+    "project_id": "aap-streamvideotests",
+    "storage_bucket": "aap-streamvideotests.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:749174240787:android:9f6c45fcf53b001461f1e6",
+        "android_client_info": {
+          "package_name": "com.aleksandarapostolov.testcomposeintegration"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2__yonFq6XDOtpZ8ZA_tVv644RrVcvt8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:749174240787:android:4da5281832f642d461f1e6",
+        "android_client_info": {
+          "package_name": "io.getstream.android.sample.audiocall"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2__yonFq6XDOtpZ8ZA_tVv644RrVcvt8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
