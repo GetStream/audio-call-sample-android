@@ -2,6 +2,7 @@ package io.getstream.android.sample.audiocall.screens.call
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -59,16 +60,32 @@ fun AudioCallContent(
         }
     }
 
+    val ringingState by call.state.ringingState.collectAsStateWithLifecycle()
+    val micEnabled by call.microphone.isEnabled.collectAsStateWithLifecycle()
+
+    val controls: @Composable (BoxScope.() -> Unit)? = when (ringingState) {
+        is RingingState.Outgoing -> {
+            // We must return different controls for the outgoing audio call since
+            // default controls show the camera icons.
+            { AudioCallControls(isMicrophoneEnabled = micEnabled, onCallAction) }
+        }
+        // Default controls for everything else
+        else -> null
+    }
+
     RingingCallContent(
         modifier = Modifier.background(color = VideoTheme.colors.appBackground),
         call = call,
+        // Must be set to false so we do not show the camera controls etc..
+        isVideoType = false,
+        controlsContent = controls,
         onBackPressed = { onReject(call) },
         onRejectedContent = { onReject(call) },
+        onNoAnswerContent = { onCancel(call) },
         onCallAction = onCallAction,
         onAcceptedContent = {
             ActiveCallContent(
-                call = call,
-                onCallAction = onCallAction
+                call = call, onCallAction = onCallAction
             ) { memberStates, dp ->
                 AudioCallDetails(call = call, memberStates = memberStates)
             }
@@ -77,45 +94,50 @@ fun AudioCallContent(
 }
 
 @Composable
+private fun BoxScope.AudioCallControls(
+    isMicrophoneEnabled: Boolean,
+    onCallAction: (CallAction) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .align(Alignment.BottomCenter)
+            .padding(bottom = 32.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceEvenly,
+    ) {
+        ToggleMicrophoneAction(
+            modifier = Modifier
+                .background(
+                    color = VideoTheme.colors.appBackground,
+                    shape = VideoTheme.shapes.callButton,
+                )
+                .size(VideoTheme.dimens.mediumButtonSize),
+            isMicrophoneEnabled = isMicrophoneEnabled,
+            onCallAction = onCallAction,
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        CancelCallAction(
+            modifier = Modifier.size(VideoTheme.dimens.mediumButtonSize),
+            onCallAction = onCallAction,
+        )
+    }
+}
+
+@Composable
 private fun ActiveCallContent(
-    call: Call,
-    onCallAction: (action: CallAction) -> Unit = { action: CallAction ->
+    call: Call, onCallAction: (action: CallAction) -> Unit = { action: CallAction ->
         DefaultOnCallActionHandler.onCallAction(call = call, callAction = action)
-    },
-    details: @Composable (ColumnScope.(List<MemberState>, Dp) -> Unit)? = null
+    }, details: @Composable (ColumnScope.(List<MemberState>, Dp) -> Unit)? = null
 ) {
     val micEnabled by call.microphone.isEnabled.collectAsStateWithLifecycle()
-    OutgoingCallContent(
-        call = call,
+    OutgoingCallContent(call = call,
         isVideoType = false,
         detailsContent = details,
         controlsContent = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 32.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly,
-            ) {
-                ToggleMicrophoneAction(
-                    modifier = Modifier
-                        .background(
-                            color = VideoTheme.colors.appBackground,
-                            shape = VideoTheme.shapes.callButton,
-                        )
-                        .size(VideoTheme.dimens.mediumButtonSize),
-                    isMicrophoneEnabled = micEnabled,
-                    onCallAction = onCallAction,
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                CancelCallAction(
-                    modifier = Modifier.size(VideoTheme.dimens.mediumButtonSize),
-                    onCallAction = onCallAction,
-                )
-            }
+            AudioCallControls(micEnabled, onCallAction)
         })
 }
 
