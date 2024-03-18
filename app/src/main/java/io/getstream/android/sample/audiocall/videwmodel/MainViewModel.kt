@@ -82,7 +82,7 @@ class MainViewModel(application: Application) : ViewModel() {
         // For incming call this will be filled from the intent
         // For outgoing calls this will have the default random value.
         cid: StreamCallId = StreamCallId(
-            "audio_call", UUID.randomUUID().toString()
+            "audio_call", "123"
         ),
         // Members will be empty for incoming calls, and filled for outgoing calls.
         members: List<String> = emptyList(),

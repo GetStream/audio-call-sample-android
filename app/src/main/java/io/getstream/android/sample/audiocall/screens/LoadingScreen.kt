@@ -15,7 +15,7 @@ fun LoadingScreen() {
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxSize()
     ) {
-        CircularProgressIndicator(color = VideoTheme.colors.primaryAccent)
+        CircularProgressIndicator(color = VideoTheme.colors.brandPrimary)
     }
 }
 

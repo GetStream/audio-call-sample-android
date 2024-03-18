@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
             VideoTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
-                    modifier = Modifier.fillMaxSize(), color = VideoTheme.colors.appBackground
+                    modifier = Modifier.fillMaxSize(), color = VideoTheme.colors.basePrimary
                 ) {
                     val context = LocalContext.current
                     val userUiState = viewModel.userState

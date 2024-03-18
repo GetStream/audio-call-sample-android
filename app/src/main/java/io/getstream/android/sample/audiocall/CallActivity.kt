@@ -30,7 +30,7 @@ class CallActivity : ComponentActivity() {
             VideoTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
-                    modifier = Modifier.fillMaxSize(), color = VideoTheme.colors.appBackground
+                    modifier = Modifier.fillMaxSize(), color = VideoTheme.colors.baseSheetPrimary
                 ) {
                     // Data to work with
                     val action = intent.action

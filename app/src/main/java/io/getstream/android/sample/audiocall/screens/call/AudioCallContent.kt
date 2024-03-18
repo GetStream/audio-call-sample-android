@@ -74,7 +74,7 @@ fun AudioCallContent(
     }
 
     RingingCallContent(
-        modifier = Modifier.background(color = VideoTheme.colors.appBackground),
+        modifier = Modifier.background(color = VideoTheme.colors.baseSheetPrimary),
         call = call,
         // Must be set to false so we do not show the camera controls etc..
         isVideoType = false,
@@ -109,10 +109,10 @@ private fun BoxScope.AudioCallControls(
         ToggleMicrophoneAction(
             modifier = Modifier
                 .background(
-                    color = VideoTheme.colors.appBackground,
-                    shape = VideoTheme.shapes.callButton,
+                    color = VideoTheme.colors.baseSheetPrimary,
+                    shape = VideoTheme.shapes.circle,
                 )
-                .size(VideoTheme.dimens.mediumButtonSize),
+                .size(VideoTheme.dimens.componentHeightL),
             isMicrophoneEnabled = isMicrophoneEnabled,
             onCallAction = onCallAction,
         )
@@ -120,7 +120,7 @@ private fun BoxScope.AudioCallControls(
         Spacer(modifier = Modifier.height(32.dp))
 
         CancelCallAction(
-            modifier = Modifier.size(VideoTheme.dimens.mediumButtonSize),
+            modifier = Modifier.size(VideoTheme.dimens.componentHeightL),
             onCallAction = onCallAction,
         )
     }

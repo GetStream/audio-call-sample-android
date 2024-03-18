@@ -113,6 +113,7 @@ class CallViewModel : ViewModel() {
 
         // Call was established, invoke callback
         result.onSuccessSuspend {
+            call.state.settings.value?.audio?.micDefaultOn
             onSuccess(call)
         }
 

@@ -58,7 +58,7 @@ dependencies {
     // START - Minimum dependencies for sample app
     // View model
     // Stream Compose library
-    implementation("io.getstream:stream-video-android-ui-compose:0.5.1")
+    implementation("io.getstream:stream-video-android-ui-compose:0.5.2")
     // Stream's firebase push library
     implementation("io.getstream:stream-android-push-firebase:1.1.7")
     // Desugar required, will be removed in later versions of Stream's library
