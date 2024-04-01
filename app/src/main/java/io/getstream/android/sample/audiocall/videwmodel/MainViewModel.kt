@@ -2,6 +2,7 @@ package io.getstream.android.sample.audiocall.videwmodel
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -11,6 +12,8 @@ import io.getstream.android.sample.audiocall.AudioCallSampleApp
 import io.getstream.android.sample.audiocall.CallActivity
 import io.getstream.android.sample.audiocall.storage.UserData
 import io.getstream.android.sample.audiocall.storage.UserStorage
+import io.getstream.android.sample.audiocall.utils.Logging
+import io.getstream.android.sample.audiocall.utils.onReceiverIsActive
 import io.getstream.result.Error
 import io.getstream.result.onErrorSuspend
 import io.getstream.result.onSuccessSuspend
@@ -87,6 +90,10 @@ class MainViewModel(application: Application) : ViewModel() {
         // Members will be empty for incoming calls, and filled for outgoing calls.
         members: List<String> = emptyList(),
     ) = viewModelScope.launch(Dispatchers.IO) {
+        val call = StreamVideo.instance().call(cid.type, cid.id)
+        call.onReceiverIsActive {
+            // Update some state...
+        }
         val intent = CallActivity.placeCallIntent(context, cid, members)
         context.startActivity(intent)
     }

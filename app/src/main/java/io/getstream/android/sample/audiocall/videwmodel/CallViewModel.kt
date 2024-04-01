@@ -1,5 +1,6 @@
 package io.getstream.android.sample.audiocall.videwmodel
 
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -32,6 +33,7 @@ IMPORTANT:  The ViewModel concept is just one way to implement the application.
  */
 class CallViewModel : ViewModel() {
     /** Ui state for the call */
+    @Stable
     sealed class CallUiState(val call: Call?, val err: io.getstream.result.Error?) {
         /** State is new and not initialized. */
         data object Undetermined : CallUiState(null, null)
@@ -139,9 +141,11 @@ class CallViewModel : ViewModel() {
         // monitor the two callbacks and then update UI state for example.
         val rejectOutcome = call.reject()
         rejectOutcome.onSuccess {
+            call.leave()
             callUiState = CallUiState.Ended
         }
         rejectOutcome.onError {
+            call.leave()
             callUiState = CallUiState.Error(it)
         }
     }
@@ -198,5 +202,16 @@ class CallViewModel : ViewModel() {
             // Just update the UI with the current incoming call.
             callUiState = CallUiState.Established(it)
         })
+    }
+
+    fun end(call: Call) {
+        viewModelScope.launch(Dispatchers.IO) {
+            call.end()
+            callUiState = CallUiState.Ended
+        }
+    }
+
+    fun end(callInfo: StreamCallId) {
+        call(callInfo, onSuccess = { it.end() })
     }
 }

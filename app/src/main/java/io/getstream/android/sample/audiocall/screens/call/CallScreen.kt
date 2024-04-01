@@ -17,7 +17,8 @@ fun AudioCallScreen(
     onReject: (Call) -> Unit = {},
     onDecline: (Call) -> Unit = {},
     onCancel: (Call) -> Unit = {},
-    onAccept: (Call) -> Unit = {}
+    onAccept: (Call) -> Unit = {},
+    onEnd: (Call) -> Unit = {}
 ) {
     when (callUiState) {
         is CallUiState.Error -> {
@@ -25,7 +26,7 @@ fun AudioCallScreen(
         }
 
         is CallUiState.Established -> {
-            AudioCallContent(callUiState.call!!, onReject, onDecline, onCancel, onAccept)
+            AudioCallContent(callUiState.call!!, onReject, onDecline, onCancel, onAccept, onEnd)
         }
 
         is CallUiState.Ended -> {

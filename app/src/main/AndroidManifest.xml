@@ -3,8 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
 
     <application
         android:name=".AudioCallSampleApp"
@@ -32,8 +30,8 @@
                 <action android:name="io.getstream.video.android.action.INCOMING_CALL" />
                 <action android:name="io.getstream.video.android.action.NOTIFICATION" />
                 <action android:name="io.getstream.video.android.action.LIVE_CALL" />
-                <action android:name="io.getstream.video.android.action.ACCEPT_CALL" />
                 <action android:name="io.getstream.video.android.action.ONGOING_CALL" />
+                <action android:name="io.getstream.video.android.action.ACCEPT_CALL" />
                 <action android:name="io.getstream.video.android.action.OUTGOING_CALL" />
             </intent-filter>
         </activity>

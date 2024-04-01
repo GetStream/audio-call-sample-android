@@ -43,7 +43,8 @@ fun AudioCallContent(
     onReject: (Call) -> Unit = {},
     onDecline: (Call) -> Unit = {},
     onCancel: (Call) -> Unit = {},
-    onAccept: (Call) -> Unit = {}
+    onAccept: (Call) -> Unit = {},
+    onEnd: (Call) -> Unit = {}
 ) {
     val onCallAction: (CallAction) -> Unit = { callAction ->
         when (callAction) {

@@ -1,15 +1,18 @@
 package io.getstream.android.sample.audiocall
 
 import android.app.Activity
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.NotificationManagerCompat
 import io.getstream.android.sample.audiocall.screens.call.AudioCallScreen
 import io.getstream.android.sample.audiocall.videwmodel.CallViewModel
 import io.getstream.video.android.compose.theme.VideoTheme
@@ -18,6 +21,7 @@ import io.getstream.video.android.core.notifications.NotificationHandler
 import io.getstream.video.android.core.notifications.NotificationHandler.Companion.INTENT_EXTRA_CALL_CID
 import io.getstream.video.android.model.StreamCallId
 import io.getstream.video.android.model.streamCallId
+import io.getstream.video.android.ui.common.notification.AbstractNotificationActivity
 
 class CallActivity : ComponentActivity() {
     // This is just the simplest and fastest way to create the view model without any dependencies
@@ -45,7 +49,7 @@ class CallActivity : ComponentActivity() {
                             }
 
                             NotificationHandler.ACTION_REJECT_CALL -> {
-                                viewModel.reject(callInfo)
+                                viewModel.end(callInfo)
                             }
 
                             NotificationHandler.ACTION_INCOMING_CALL -> {
@@ -63,25 +67,19 @@ class CallActivity : ComponentActivity() {
                     AudioCallScreen(callUiState = viewModel.callUiState, onReset = {
                         finish()
                     }, onReject = {
-                        viewModel.reject(it)
+                        viewModel.end(it)
                     }, onAccept = {
                         viewModel.accept(it)
                     }, onDecline = {
-                        viewModel.reject(it)
+                        viewModel.end(it)
                     }, onCancel = {
-                        viewModel.cancel(it)
+                        viewModel.end(it)
+                    }, onEnd = {
+                        viewModel.end(it)
                     })
                 }
             }
         }
-    }
-
-    override fun finish() {
-        // Cleanup any calls we may have since our call UI is gone.
-        // This should be done elsewhere if state is managed differently
-        // for the sample app we just do it here.
-        StreamVideo.instance().state.activeCall.value?.leave()
-        super.finish()
     }
 
     companion object {

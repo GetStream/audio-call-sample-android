@@ -1,15 +1,19 @@
 package io.getstream.android.sample.audiocall
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.getstream.android.sample.audiocall.screens.MainScreen
 import io.getstream.android.sample.audiocall.videwmodel.MainViewModel
 import io.getstream.video.android.compose.theme.VideoTheme
+import io.getstream.video.android.core.StreamVideo
+import io.getstream.video.android.ui.common.notification.AbstractNotificationActivity
 
 class MainActivity : ComponentActivity() {
     // This is just the simplest and fastest way to create the view model without any dependencies
