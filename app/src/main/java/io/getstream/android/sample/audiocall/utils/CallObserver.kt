@@ -1,5 +1,6 @@
 package io.getstream.android.sample.audiocall.utils
 
+import io.getstream.android.sample.audiocall.AudioCallSampleApp
 import io.getstream.log.taggedLogger
 import io.getstream.video.android.core.Call
 import io.getstream.video.android.core.RealtimeConnection
@@ -9,7 +10,6 @@ import io.getstream.video.android.model.StreamCallId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
@@ -24,9 +24,9 @@ import org.openapitools.client.models.VideoEvent
 
 // Utilities
 /**
- * Creates a default coroutine scope.
+ * Creates a default coroutine scope for monitoring events on IO thread.
  */
-fun defaultCoroutineScope() = MainScope() + Dispatchers.IO
+fun defaultCoroutineScope(baseScope: CoroutineScope = AudioCallSampleApp.applicationScope) = baseScope + Dispatchers.IO
 
 /**
  * Create a default buffered flow.
