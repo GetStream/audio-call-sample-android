@@ -99,7 +99,7 @@ class AudioCallSampleApp : Application() {
             sdkInstance
         }
 
-        // Observe all call events
+        /*// Observe all call events
         GlobalScope.launch {
             callEvents().collectLatest {
                 Log.d("AllEventsObserver", "$it")
@@ -114,7 +114,7 @@ class AudioCallSampleApp : Application() {
             callEvents(cid = StreamCallId.fromCallCid("audio_call:123")).collectLatest {
                 Log.d("SingleCallEventsObserver", "$it")
             }
-        }
+        }*/
 
         return preparedInstance
     }

@@ -2,30 +2,23 @@ package io.getstream.android.sample.audiocall.videwmodel
 
 import android.app.Application
 import android.content.Context
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.getstream.android.sample.audiocall.AudioCallSampleApp
-import io.getstream.android.sample.audiocall.CallActivity
+import io.getstream.android.sample.audiocall.sample.StreamCallActivity
 import io.getstream.android.sample.audiocall.storage.UserData
 import io.getstream.android.sample.audiocall.storage.UserStorage
-import io.getstream.android.sample.audiocall.utils.Logging
-import io.getstream.android.sample.audiocall.utils.onReceiverIsActive
-import io.getstream.result.Error
-import io.getstream.result.onErrorSuspend
-import io.getstream.result.onSuccessSuspend
-import io.getstream.video.android.core.Call
 import io.getstream.video.android.core.StreamVideo
+import io.getstream.video.android.core.notifications.NotificationHandler
 import io.getstream.video.android.model.StreamCallId
 import io.getstream.video.android.model.User
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 /**
  * A single combined view model for simplicity.
@@ -76,26 +69,6 @@ class MainViewModel(application: Application) : ViewModel() {
                 }
             }
         }
-    }
-
-    fun placeCall(
-        // Needed to load some data
-        context: Context,
-        // Call id, can come from the intent, or be defined randomly here
-        // For incming call this will be filled from the intent
-        // For outgoing calls this will have the default random value.
-        cid: StreamCallId = StreamCallId(
-            "audio_call", "123"
-        ),
-        // Members will be empty for incoming calls, and filled for outgoing calls.
-        members: List<String> = emptyList(),
-    ) = viewModelScope.launch(Dispatchers.IO) {
-        val call = StreamVideo.instance().call(cid.type, cid.id)
-        call.onReceiverIsActive {
-            // Update some state...
-        }
-        val intent = CallActivity.placeCallIntent(context, cid, members)
-        context.startActivity(intent)
     }
 
     fun logout(context: Context) = viewModelScope.launch(Dispatchers.IO) {

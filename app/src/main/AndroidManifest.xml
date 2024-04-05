@@ -24,7 +24,10 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".CallActivity"
+            android:name=".sample.StreamCallActivity"
+            android:showOnLockScreen="true"
+            android:showWhenLocked="true"
+            android:launchMode="singleTop"
             android:exported="true">
             <intent-filter android:priority="1">
                 <action android:name="io.getstream.video.android.action.INCOMING_CALL" />
