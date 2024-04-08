@@ -1,12 +1,16 @@
 package io.getstream.android.sample.audiocall.sample
 
 import android.Manifest
+import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.provider.Settings
+import android.util.Rational
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -55,6 +59,7 @@ import io.getstream.video.android.core.events.ParticipantLeftEvent
 import io.getstream.video.android.core.notifications.NotificationHandler
 import io.getstream.video.android.model.StreamCallId
 import io.getstream.video.android.model.streamCallId
+import io.getstream.video.android.ui.common.AbstractCallActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -94,12 +99,7 @@ open class StreamCallActivity : ComponentActivity() {
             leaveWhenLastInCall: Boolean = DEFAULT_LEAVE_WHEN_LAST,
             action: String? = null
         ): Intent = callIntent(
-            context,
-            cid,
-            members,
-            leaveWhenLastInCall,
-            action,
-            StreamCallActivity::class.java
+            context, cid, members, leaveWhenLastInCall, action, StreamCallActivity::class.java
         )
 
         /**
@@ -154,7 +154,8 @@ open class StreamCallActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         onPreCreate(savedInstanceState, null)
         logger.d { "Entered [onCreate(Bundle?)" }
-        initializeCallOrFail(savedInstanceState, null,
+        initializeCallOrFail(savedInstanceState,
+            null,
             onSuccess = { instanceState, persistentState, call, action ->
                 logger.d { "Calling [onCreate(Call)], because call is initialized $call" }
                 onCreate(instanceState, persistentState, call)
@@ -172,7 +173,8 @@ open class StreamCallActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         onPreCreate(savedInstanceState, persistentState)
         logger.d { "Entered [onCreate(Bundle, PersistableBundle?)" }
-        initializeCallOrFail(savedInstanceState, persistentState,
+        initializeCallOrFail(savedInstanceState,
+            persistentState,
             onSuccess = { instanceState, persistedState, call, action ->
                 logger.d { "Calling [onCreate(Call)], because call is initialized $call" }
                 onCreate(instanceState, persistedState, call)
@@ -201,6 +203,14 @@ open class StreamCallActivity : ComponentActivity() {
         }
     }
 
+
+    final override fun onStop() {
+        withCachedCall {
+            onStop(it)
+            super.onStop()
+        }
+    }
+
     // Lifecycle methods
 
     /**
@@ -212,43 +222,42 @@ open class StreamCallActivity : ComponentActivity() {
      * @see NotificationHandler
      */
     open fun onIntentAction(
-        call: Call,
-        action: String?,
-        onError: (suspend (Exception) -> Unit)? = onErrorFinish
+        call: Call, action: String?, onError: (suspend (Exception) -> Unit)? = onErrorFinish
     ) {
         when (action) {
             NotificationHandler.ACTION_ACCEPT_CALL -> {
+                logger.d { "Action ACCEPT_CALL, ${call.cid}" }
                 accept(call, onError = onError)
             }
 
             NotificationHandler.ACTION_REJECT_CALL -> {
+                logger.d { "Action REJECT_CALL, ${call.cid}" }
                 reject(call, onError = onError)
             }
 
+            NotificationHandler.ACTION_INCOMING_CALL -> {
+                logger.d { "Action INCOMING_CALL, ${call.cid}" }
+                get(call, onError = onError)
+            }
+
             NotificationHandler.ACTION_OUTGOING_CALL -> {
+                logger.d { "Action OUTGOING_CALL, ${call.cid}" }
                 // Extract the members and the call ID and place the outgoing call
                 val members = intent.getStringArrayListExtra(EXTRA_MEMBERS_ARRAY) ?: emptyList()
                 create(
-                    call,
-                    members = members,
-                    ring = true,
-                    onError = onError
+                    call, members = members, ring = true, onError = onError
                 )
             }
 
             else -> {
+                logger.w { "No action provided to the intent will try to join call by default [action: $action], [cid: ${call.cid}]" }
                 val members = intent.getStringArrayListExtra(EXTRA_MEMBERS_ARRAY) ?: emptyList()
                 // If the call does not exist it will be created.
                 create(
-                    call,
-                    members = members,
-                    ring = false,
-                    onSuccess = {
+                    call, members = members, ring = false, onSuccess = {
                         join(call, onError = onError)
-                    },
-                    onError = onError
+                    }, onError = onError
                 )
-                logger.w { "No action provided to the intent will try to join call by default [action: $action]" }
             }
         }
     }
@@ -308,8 +317,23 @@ open class StreamCallActivity : ComponentActivity() {
      * @param call the call
      */
     open fun onPause(call: Call) {
-        // No - op, extension point
+        if (isVideoCall(call) && !isInPictureInPictureMode) {
+            enterPictureInPicture()
+        }
         logger.d { "DefaultCallActivity - Paused (call -> $call)" }
+    }
+
+    /**
+     * Called when the activity is stopped. Makes sure the call object is available.
+     * Will leave the call if [onStop] is called while in Picture-in-picture mode.
+     * @param call the call
+     */
+    open fun onStop(call: Call) {
+        logger.d { "Default activity - stopped (call -> $call)" }
+        if (isVideoCall(call) && !isInPictureInPictureMode) {
+            logger.d { "Default activity - stopped: No PiP detected, will leave call. (call -> $call)" }
+            leave(call) // Already finishing
+        }
     }
 
     /**
@@ -320,6 +344,34 @@ open class StreamCallActivity : ComponentActivity() {
      */
     open fun onBackPressed(call: Call) {
         leave(call, onSuccessFinish, onErrorFinish)
+    }
+
+    // Decision making
+    open fun isVideoCall(call: Call) = call.hasCapability(OwnCapability.SendVideo)
+
+    // Picture in picture (for Video calls)
+    open fun enterPictureInPicture() = withCachedCall { call ->
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val currentOrientation = resources.configuration.orientation
+            val screenSharing = call.state.screenSharingSession.value
+
+            val aspect =
+                if (currentOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT && (screenSharing == null || screenSharing.participant.isLocal)) {
+                    Rational(9, 16)
+                } else {
+                    Rational(16, 9)
+                }
+
+            enterPictureInPictureMode(
+                PictureInPictureParams.Builder().setAspectRatio(aspect).apply {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        this.setAutoEnterEnabled(true)
+                    }
+                }.build(),
+            )
+        } else {
+            @Suppress("DEPRECATION") enterPictureInPictureMode()
+        }
     }
 
     // Call API
@@ -371,6 +423,22 @@ open class StreamCallActivity : ComponentActivity() {
     }
 
     /**
+     * Get a call. Used in cases like "incoming call" where you are sure that the call is already created.
+     *
+     * @param
+     */
+    open fun get(
+        call: Call,
+        onSuccess: (suspend (Call) -> Unit)? = null,
+        onError: (suspend (Exception) -> Unit)? = null,
+    ) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val result = call.get()
+            result.onOutcome(call, onSuccess, onError)
+        }
+    }
+
+    /**
      * Accept an incoming call.
      *
      * @param call the call to accept.
@@ -382,6 +450,7 @@ open class StreamCallActivity : ComponentActivity() {
         onError: (suspend (Exception) -> Unit)? = null,
     ) {
         acceptOrJoinNewCall(call, onSuccess, onError) {
+            logger.d { "Join call, ${call.cid}" }
             it.join()
         }
     }
@@ -398,6 +467,7 @@ open class StreamCallActivity : ComponentActivity() {
         onError: (suspend (Exception) -> Unit)? = null,
     ) {
         acceptOrJoinNewCall(call, onSuccess, onError) {
+            logger.d { "Accept then join, ${call.cid}" }
             call.acceptThenJoin()
         }
     }
@@ -416,6 +486,7 @@ open class StreamCallActivity : ComponentActivity() {
         onSuccess: (suspend (Call) -> Unit)? = null,
         onError: (suspend (Exception) -> Unit)? = null,
     ) {
+        logger.d { "Reject call, ${call.cid}" }
         lifecycleScope.launch(Dispatchers.IO) {
             val result = call.reject()
             result.onOutcome(call, onSuccess, onError)
@@ -448,6 +519,7 @@ open class StreamCallActivity : ComponentActivity() {
         onSuccess: (suspend (Call) -> Unit)? = null,
         onError: (suspend (Exception) -> Unit)? = null,
     ) {
+        logger.d { "Leave call, ${call.cid}" }
         lifecycleScope.launch(Dispatchers.IO) {
             // Will quietly leave the call, leaving it intact for the other participants.
             try {
@@ -582,18 +654,14 @@ open class StreamCallActivity : ComponentActivity() {
         }
 
         call(
-            cid,
-            onSuccess = { call ->
+            cid, onSuccess = { call ->
                 cachedCall = call
                 subscription?.dispose()
                 subscription = cachedCall.subscribe { event ->
                     internalOnCallEvent(cachedCall, event)
                 }
                 onSuccess?.invoke(
-                    savedInstanceState,
-                    persistentState,
-                    cachedCall,
-                    intent.action
+                    savedInstanceState, persistentState, cachedCall, intent.action
                 )
             }, onError = onError
         )
@@ -602,13 +670,12 @@ open class StreamCallActivity : ComponentActivity() {
 
     private fun withCachedCall(action: (Call) -> Unit) {
         if (!::cachedCall.isInitialized) {
-            initializeCallOrFail(null, null,
-                onSuccess = { _, _, call, _ ->
-                    action(call)
-                }, onError = {
-                    // Call is missing, we need to crash, no other way
-                    throw it
-                })
+            initializeCallOrFail(null, null, onSuccess = { _, _, call, _ ->
+                action(call)
+            }, onError = {
+                // Call is missing, we need to crash, no other way
+                throw it
+            })
         } else {
             action(cachedCall)
         }
@@ -617,8 +684,10 @@ open class StreamCallActivity : ComponentActivity() {
     private fun acceptOrJoinNewCall(
         call: Call,
         onSuccess: (suspend (Call) -> Unit)?,
-        onError: (suspend (Exception) -> Unit)?, what: suspend (Call) -> Result<RtcSession>
+        onError: (suspend (Exception) -> Unit)?,
+        what: suspend (Call) -> Result<RtcSession>
     ) {
+        logger.d { "Accept or join, ${call.cid}" }
         lifecycleScope.launch(Dispatchers.IO) {
             // Since its an incoming call, we can safely assume it is already created
             // no need to set create = true, or ring = true or anything.
@@ -629,11 +698,13 @@ open class StreamCallActivity : ComponentActivity() {
                 if (activeCall.id != call.id) {
                     // If the call id is different leave the previous call
                     activeCall.leave()
+                    logger.d { "Leave active call, ${call.cid}" }
                     // Join the call, only if accept succeeds
                     val result = what(call)
                     result.onOutcome(call, onSuccess, onError)
                 } else {
                     // Already accepted and joined
+                    logger.d { "Already joined, ${call.cid}" }
                     withContext(Dispatchers.Main) {
                         onSuccess?.invoke(call)
                     }
@@ -714,14 +785,14 @@ open class StreamCallActivity : ComponentActivity() {
                         }
 
                         RingingCallContent(
-                            isVideoType = call.hasCapability(OwnCapability.SendVideo),
+                            isVideoType = isVideoCall(call),
                             call = call,
                             modifier = Modifier.background(color = VideoTheme.colors.baseSheetPrimary),
                             onBackPressed = {
                                 onBackPressed(call)
                             },
                             onAcceptedContent = {
-                                if (call.hasCapability(OwnCapability.SendVideo)) {
+                                if (isVideoCall(call)) {
                                     DefaultCallContent(call = call)
                                 } else {
                                     AudioCallContent(call = call)
@@ -792,6 +863,9 @@ open class StreamCallActivity : ComponentActivity() {
             val micEnabled by call.microphone.isEnabled.collectAsStateWithLifecycle()
             val duration by call.state.durationInDateFormat.collectAsStateWithLifecycle()
             io.getstream.video.android.compose.ui.components.call.activecall.AudioCallContent(
+                onBackPressed = {
+                    onBackPressed(call)
+                },
                 call = call,
                 isMicrophoneEnabled = micEnabled,
                 onCallAction = {
@@ -810,6 +884,8 @@ open class StreamCallActivity : ComponentActivity() {
         open fun StreamCallActivity.DefaultCallContent(call: Call) {
             CallContent(call = call, onCallAction = {
                 internalOnCallAction(call, it)
+            }, onBackPressed = {
+                onBackPressed(call)
             })
         }
 

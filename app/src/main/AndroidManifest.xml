@@ -25,6 +25,7 @@
         </activity>
         <activity
             android:name=".sample.StreamCallActivity"
+            android:supportsPictureInPicture="true"
             android:showOnLockScreen="true"
             android:showWhenLocked="true"
             android:launchMode="singleTop"
