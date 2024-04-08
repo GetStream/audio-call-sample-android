@@ -7,9 +7,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import io.getstream.android.sample.audiocall.sample.StreamCallActivity
 import io.getstream.android.sample.audiocall.screens.MainScreen
 import io.getstream.android.sample.audiocall.videwmodel.MainViewModel
 import io.getstream.video.android.compose.theme.VideoTheme
+import io.getstream.video.android.core.notifications.NotificationHandler
+import io.getstream.video.android.model.StreamCallId
+import java.util.UUID
 
 class MainActivity : ComponentActivity() {
     // This is just the simplest and fastest way to create the view model without any dependencies
@@ -36,7 +40,14 @@ class MainActivity : ComponentActivity() {
                             viewModel.logout(context = context)
                         },
                         onDial = { members ->
-                            viewModel.placeCall(context = context, members = members)
+                            val intent = StreamCallActivity.callIntent(
+                                this,
+                                StreamCallId("audio_call", UUID.randomUUID().toString()),
+                                members,
+                                true,
+                                action = NotificationHandler.ACTION_OUTGOING_CALL
+                            )
+                            startActivity(intent)
                         })
                 }
             }
