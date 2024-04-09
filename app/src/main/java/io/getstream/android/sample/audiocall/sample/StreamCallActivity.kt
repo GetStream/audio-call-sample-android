@@ -1,53 +1,30 @@
 package io.getstream.android.sample.audiocall.sample
 
-import android.Manifest
 import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.PersistableBundle
-import android.provider.Settings
 import android.util.Rational
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.CallSuper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import io.getstream.log.taggedLogger
-import io.getstream.result.Error
 import io.getstream.result.Result
 import io.getstream.result.flatMap
 import io.getstream.result.onErrorSuspend
 import io.getstream.result.onSuccessSuspend
-import io.getstream.video.android.compose.permission.LaunchPermissionRequest
 import io.getstream.video.android.compose.theme.VideoTheme
-import io.getstream.video.android.compose.ui.components.base.StreamDialogPositiveNegative
-import io.getstream.video.android.compose.ui.components.base.styling.ButtonStyles
-import io.getstream.video.android.compose.ui.components.base.styling.StreamDialogStyles
-import io.getstream.video.android.compose.ui.components.base.styling.StyleSize
-import io.getstream.video.android.compose.ui.components.call.activecall.CallContent
 import io.getstream.video.android.compose.ui.components.call.controls.actions.DefaultOnCallActionHandler
-import io.getstream.video.android.compose.ui.components.call.ringing.RingingCallContent
 import io.getstream.video.android.core.Call
 import io.getstream.video.android.core.EventSubscription
-import io.getstream.video.android.core.RealtimeConnection
 import io.getstream.video.android.core.StreamVideo
 import io.getstream.video.android.core.call.RtcSession
 import io.getstream.video.android.core.call.state.AcceptCall
@@ -59,7 +36,6 @@ import io.getstream.video.android.core.events.ParticipantLeftEvent
 import io.getstream.video.android.core.notifications.NotificationHandler
 import io.getstream.video.android.model.StreamCallId
 import io.getstream.video.android.model.streamCallId
-import io.getstream.video.android.ui.common.AbstractCallActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -69,15 +45,12 @@ import org.openapitools.client.models.OwnCapability
 import org.openapitools.client.models.VideoEvent
 
 
-open class StreamCallActivity : ComponentActivity() {
+abstract class StreamCallActivity : ComponentActivity() {
     // Factory and creation
     companion object {
         // Extra keys
         private const val EXTRA_LEAVE_WHEN_LAST: String = "leave_when_last"
         private const val EXTRA_MEMBERS_ARRAY: String = "members_extra"
-
-        // Constants
-        private const val CALL_NOT_EXIST_ERROR_CODE = 16
 
         // Extra default values
         private const val DEFAULT_LEAVE_WHEN_LAST: Boolean = true
@@ -111,7 +84,7 @@ open class StreamCallActivity : ComponentActivity() {
          * @param action android action.
          * @param clazz the class of the Activity
          */
-        fun <T : ComponentActivity> callIntent(
+        fun <T : StreamCallActivity> callIntent(
             context: Context,
             cid: StreamCallId,
             members: List<String> = defaultExtraMembers,
@@ -140,11 +113,11 @@ open class StreamCallActivity : ComponentActivity() {
     // Internal state
     private var subscription: EventSubscription? = null
     private lateinit var cachedCall: Call
-    private val onSuccessFinish: suspend (Call) -> Unit = {
+    internal val onSuccessFinish: suspend (Call) -> Unit = {
         logger.w { "The call was successfully finished! Closing activity" }
         finish()
     }
-    private val onErrorFinish: suspend (Exception) -> Unit = {
+    internal val onErrorFinish: suspend (Exception) -> Unit = {
         logger.e(it) { "Something went wrong, finishing the activity!" }
         finish()
     }
@@ -289,17 +262,15 @@ open class StreamCallActivity : ComponentActivity() {
         savedInstanceState: Bundle?, persistentState: PersistableBundle?, call: Call
     ) {
         logger.d { "[onCreate(Bundle,PersistableBundle,Call)] setting up compose delegate." }
-        val uiDelegate = composeDelegate()
-        uiDelegate.onCreate(this, call)
+        val uiDelegate = uiDelegate<StreamCallActivity>()
+        uiDelegate.setContent(this, call)
     }
 
     /**
      * Returns a delegate that uses compose for its UI.
      *
      */
-    open fun composeDelegate(): ActivityComposeDelegate {
-        return ActivityComposeDelegate()
-    }
+    abstract fun <T: StreamCallActivity> uiDelegate(): StreamActivityUiDelegate<T>
 
     /**
      * Called when the activity is resumed. Makes sure the call object is available.
@@ -350,7 +321,10 @@ open class StreamCallActivity : ComponentActivity() {
     open fun isVideoCall(call: Call) = call.hasCapability(OwnCapability.SendVideo)
 
     // Picture in picture (for Video calls)
-    open fun enterPictureInPicture() = withCachedCall { call ->
+    /**
+     * Enter picture in picture mode. By default supported for video calls.
+     */
+    fun enterPictureInPicture() = withCachedCall { call ->
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val currentOrientation = resources.configuration.orientation
             val screenSharing = call.state.screenSharingSession.value
@@ -425,7 +399,9 @@ open class StreamCallActivity : ComponentActivity() {
     /**
      * Get a call. Used in cases like "incoming call" where you are sure that the call is already created.
      *
-     * @param
+     * @param call the call
+     * @param onSuccess invoked when operation is sucessfull
+     * @param onError invoked when operation failed.
      */
     open fun get(
         call: Call,
@@ -443,6 +419,7 @@ open class StreamCallActivity : ComponentActivity() {
      *
      * @param call the call to accept.
      * @param onSuccess invoked when the [Call.join] has finished.
+     * @param onError invoked when operation failed.
      * */
     open fun join(
         call: Call,
@@ -460,6 +437,7 @@ open class StreamCallActivity : ComponentActivity() {
      *
      * @param call the call to accept.
      * @param onSuccess invoked when the [Call.join] has finished.
+     * @param onError invoked when operation failed.
      * */
     open fun accept(
         call: Call,
@@ -513,6 +491,8 @@ open class StreamCallActivity : ComponentActivity() {
      * Leave the call from the parameter.
      *
      * @param call the call object.
+     * @param onSuccess optionally get notified if the operation was success.
+     * @param onError optionally get notified if the operation failed.
      */
     open fun leave(
         call: Call,
@@ -533,6 +513,10 @@ open class StreamCallActivity : ComponentActivity() {
 
     /**
      * End the call.
+     *
+     * @param call the call
+     * @param onSuccess optionally get notified if the operation was success.
+     * @param onError optionally get notified if the operation failed.
      */
     open fun end(
         call: Call,
@@ -553,9 +537,28 @@ open class StreamCallActivity : ComponentActivity() {
      * @param call the call
      * @param action the action.
      */
-    open fun onCallAction(call: Call, action: CallAction): Boolean {
-        // By default no action is custom handled
-        return false
+    @CallSuper
+    open fun onCallAction(call: Call, action: CallAction) {
+        logger.d { "======-- Action --======\n$action\n================" }
+        when (action) {
+            is LeaveCall -> {
+                leave(call, onSuccessFinish, onErrorFinish)
+            }
+
+            is DeclineCall -> {
+                reject(call, onSuccessFinish, onErrorFinish)
+            }
+
+            is CancelCall -> {
+                cancel(call, onSuccessFinish, onErrorFinish)
+            }
+
+            is AcceptCall -> {
+                accept(call, onError = onErrorFinish)
+            }
+
+            else -> DefaultOnCallActionHandler.onCallAction(call, action)
+        }
     }
 
     /**
@@ -564,9 +567,26 @@ open class StreamCallActivity : ComponentActivity() {
      * @param call the call.
      * @param event the event.
      */
-    open fun onCallEvent(call: Call, event: VideoEvent): Boolean {
-        // By default there is no custom handling for events.
-        return false
+    @CallSuper
+    open fun onCallEvent(call: Call, event: VideoEvent) {
+        when (event) {
+            is CallEndedEvent -> {
+                // In any case finish the activity, the call is done for
+                leave(call, onSuccess = {
+                    finish()
+                }, onError = {
+                    finish()
+                })
+            }
+
+            is ParticipantLeftEvent, is CallSessionParticipantLeftEvent -> {
+                val total = call.state.participantCounts.value?.total
+                logger.d { "Participant left, remaining: $total" }
+                if (total != null && total <= 2) {
+                    onLastParticipant(call)
+                }
+            }
+        }
     }
 
     /**
@@ -580,60 +600,19 @@ open class StreamCallActivity : ComponentActivity() {
         val leaveWhenLastInCall =
             intent.getBooleanExtra(EXTRA_LEAVE_WHEN_LAST, DEFAULT_LEAVE_WHEN_LAST)
         if (leaveWhenLastInCall) {
-            internalOnCallAction(call, LeaveCall)
+            onCallAction(call, LeaveCall)
         }
+    }
+
+    /**
+     * Get notified when the activity enters picture in picture.
+     *
+     */
+    open fun onPictureInPicture(call: Call) {
+        // No-op by default
     }
 
     // Internal logic
-    private fun internalOnCallAction(call: Call, action: CallAction) {
-        logger.d { "======-- Action --======\n$action\n================" }
-        if (!onCallAction(call, action)) {
-            when (action) {
-                is LeaveCall -> {
-                    leave(call, onSuccessFinish, onErrorFinish)
-                }
-
-                is DeclineCall -> {
-                    reject(call, onSuccessFinish, onErrorFinish)
-                }
-
-                is CancelCall -> {
-                    cancel(call, onSuccessFinish, onErrorFinish)
-                }
-
-                is AcceptCall -> {
-                    accept(call, onError = onErrorFinish)
-                }
-
-                else -> DefaultOnCallActionHandler.onCallAction(call, action)
-            }
-        }
-    }
-
-    private fun internalOnCallEvent(call: Call, event: VideoEvent) {
-        logger.d { "======-- Event --======\n$event\n================" }
-        if (!onCallEvent(call, event)) {
-            when (event) {
-                is CallEndedEvent -> {
-                    // In any case finish the activity, the call is done for
-                    leave(call, onSuccess = {
-                        finish()
-                    }, onError = {
-                        finish()
-                    })
-                }
-
-                is ParticipantLeftEvent, is CallSessionParticipantLeftEvent -> {
-                    val total = call.state.participantCounts.value?.total
-                    logger.d { "Participant left, remaining: $total" }
-                    if (total != null && total <= 2) {
-                        onLastParticipant(call)
-                    }
-                }
-            }
-        }
-    }
-
     private fun initializeCallOrFail(
         savedInstanceState: Bundle?,
         persistentState: PersistableBundle?,
@@ -658,7 +637,7 @@ open class StreamCallActivity : ComponentActivity() {
                 cachedCall = call
                 subscription?.dispose()
                 subscription = cachedCall.subscribe { event ->
-                    internalOnCallEvent(cachedCall, event)
+                    onCallEvent(cachedCall, event)
                 }
                 onSuccess?.invoke(
                     savedInstanceState, persistentState, cachedCall, intent.action
@@ -739,206 +718,4 @@ open class StreamCallActivity : ComponentActivity() {
 
     // Compose Delegate
 
-    /**
-     * A default implementation of the compose delegate for the call activity.
-     * Can be extended.
-     * Provides functions with the context of the activity.
-     */
-    open class ActivityComposeDelegate {
-
-        /**
-         * Create the delegate.
-         *
-         * @param activity the activity
-         * @param call the call
-         */
-        fun onCreate(activity: StreamCallActivity, call: Call) {
-            logger.d { "[onCreate(activity, call)] invoked from compose delegate." }
-            activity.setContent {
-                logger.d { "[setContent] with RootContent" }
-                activity.RootContent(call = call)
-            }
-        }
-
-        /**
-         * Root content of the screen.
-         *
-         * @param call the call object.
-         */
-        @Composable
-        open fun StreamCallActivity.RootContent(call: Call) {
-            VideoTheme {
-                LaunchPermissionRequest(listOf(Manifest.permission.RECORD_AUDIO)) {
-                    AllPermissionsGranted {
-                        // All permissions granted
-                        val connection by call.state.connection.collectAsStateWithLifecycle()
-                        LaunchedEffect(key1 = connection) {
-                            if (connection == RealtimeConnection.Disconnected) {
-                                logger.w { "Call disconnected." }
-                                onSuccessFinish(call)
-                            } else if (connection is RealtimeConnection.Failed) {
-                                logger.w { "Call connection failed." }
-                                // Safely cast, no need to crash if the error message is missing
-                                val conn = connection as? RealtimeConnection.Failed
-                                onErrorFinish(Exception("${conn?.error}"))
-                            }
-                        }
-
-                        RingingCallContent(
-                            isVideoType = isVideoCall(call),
-                            call = call,
-                            modifier = Modifier.background(color = VideoTheme.colors.baseSheetPrimary),
-                            onBackPressed = {
-                                onBackPressed(call)
-                            },
-                            onAcceptedContent = {
-                                if (isVideoCall(call)) {
-                                    DefaultCallContent(call = call)
-                                } else {
-                                    AudioCallContent(call = call)
-                                }
-                            },
-                            onNoAnswerContent = {
-                                NoAnswerContent(call)
-                            },
-                            onRejectedContent = {
-                                RejectedContent(call)
-                            },
-                            onCallAction = {
-                                internalOnCallAction(call, it)
-                            },
-                        )
-                    }
-
-                    SomeGranted { granted, notGranted, showRationale ->
-                        // Some of the permissions were granted, you can check which ones.
-                        if (showRationale) {
-                            NoPermissions(granted, notGranted, true)
-                        } else {
-                            logger.w { "No permission, closing activity without rationale! [notGranted: [$notGranted]" }
-                            finish()
-                        }
-                    }
-                    NoneGranted {
-                        // None of the permissions were granted.
-                        if (it) {
-                            NoPermissions(showRationale = true)
-                        } else {
-                            logger.w { "No permission, closing activity without rationale!" }
-                            finish()
-                        }
-                    }
-                }
-            }
-        }
-
-        /**
-         * Content when the call is not answered.
-         *
-         * @param call the call.
-         */
-        @Composable
-        open fun StreamCallActivity.NoAnswerContent(call: Call) {
-            internalOnCallAction(call, LeaveCall)
-        }
-
-        /**
-         * Content when the call is rejected.
-         *
-         * @param call the call.
-         */
-        @Composable
-        open fun StreamCallActivity.RejectedContent(call: Call) {
-            internalOnCallAction(call, DeclineCall)
-        }
-
-        /**
-         * Content for audio calls.
-         * Call type must be "audio_call"
-         *
-         * @param call the call.
-         */
-        @Composable
-        open fun StreamCallActivity.AudioCallContent(call: Call) {
-            val micEnabled by call.microphone.isEnabled.collectAsStateWithLifecycle()
-            val duration by call.state.durationInDateFormat.collectAsStateWithLifecycle()
-            io.getstream.video.android.compose.ui.components.call.activecall.AudioCallContent(
-                onBackPressed = {
-                    onBackPressed(call)
-                },
-                call = call,
-                isMicrophoneEnabled = micEnabled,
-                onCallAction = {
-                    internalOnCallAction(call, it)
-                },
-                durationPlaceholder = duration ?: "Calling...",
-            )
-        }
-
-        /**
-         * Content for all other calls.
-         *
-         * @param call the call.
-         */
-        @Composable
-        open fun StreamCallActivity.DefaultCallContent(call: Call) {
-            CallContent(call = call, onCallAction = {
-                internalOnCallAction(call, it)
-            }, onBackPressed = {
-                onBackPressed(call)
-            })
-        }
-
-        /**
-         * Content when permissions are missing.
-         */
-        @Composable
-        open fun StreamCallActivity.NoPermissions(
-            granted: List<String> = emptyList(),
-            notGranted: List<String> = emptyList(),
-            showRationale: Boolean
-        ) {
-            StreamDialogPositiveNegative(
-                content = {
-                    Text(
-                        text = "Some permissions are required",
-                        style = TextStyle(
-                            fontSize = 24.sp,
-                            lineHeight = 28.sp,
-                            fontWeight = FontWeight(500),
-                            color = VideoTheme.colors.basePrimary,
-                            textAlign = TextAlign.Center,
-                        ),
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        text = "The app needs access to your microphone.",
-                        style = TextStyle(
-                            fontSize = CALL_NOT_EXIST_ERROR_CODE.sp,
-                            lineHeight = 18.5.sp,
-                            fontWeight = FontWeight(400),
-                            color = VideoTheme.colors.baseSecondary,
-                            textAlign = TextAlign.Center,
-                        ),
-                    )
-                },
-                style = StreamDialogStyles.defaultDialogStyle(),
-                positiveButton = Triple(
-                    "Settings",
-                    ButtonStyles.secondaryButtonStyle(StyleSize.S),
-                ) {
-                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                        data = Uri.fromParts("package", packageName, null)
-                    }
-                    startActivity(intent)
-                },
-                negativeButton = Triple(
-                    "Not now",
-                    ButtonStyles.tertiaryButtonStyle(StyleSize.S),
-                ) {
-                    finish()
-                },
-            )
-        }
-    }
 }

@@ -8,6 +8,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import io.getstream.android.sample.audiocall.sample.StreamCallActivity
+import io.getstream.android.sample.audiocall.sample.compose.ComposeStreamCallActivity
 import io.getstream.android.sample.audiocall.screens.MainScreen
 import io.getstream.android.sample.audiocall.videwmodel.MainViewModel
 import io.getstream.video.android.compose.theme.VideoTheme
@@ -45,7 +46,8 @@ class MainActivity : ComponentActivity() {
                                 StreamCallId("audio_call", UUID.randomUUID().toString()),
                                 members,
                                 true,
-                                action = NotificationHandler.ACTION_OUTGOING_CALL
+                                action = NotificationHandler.ACTION_OUTGOING_CALL,
+                                clazz = ComposeStreamCallActivity::class.java
                             )
                             startActivity(intent)
                         })
