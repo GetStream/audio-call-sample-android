@@ -8,12 +8,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.getstream.android.sample.audiocall.AudioCallSampleApp
-import io.getstream.android.sample.audiocall.sample.StreamCallActivity
 import io.getstream.android.sample.audiocall.storage.UserData
 import io.getstream.android.sample.audiocall.storage.UserStorage
 import io.getstream.video.android.core.StreamVideo
-import io.getstream.video.android.core.notifications.NotificationHandler
-import io.getstream.video.android.model.StreamCallId
 import io.getstream.video.android.model.User
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

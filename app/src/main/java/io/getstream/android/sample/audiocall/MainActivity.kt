@@ -7,13 +7,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import io.getstream.android.sample.audiocall.sample.StreamCallActivity
-import io.getstream.android.sample.audiocall.sample.compose.ComposeStreamCallActivity
 import io.getstream.android.sample.audiocall.screens.MainScreen
 import io.getstream.android.sample.audiocall.videwmodel.MainViewModel
 import io.getstream.video.android.compose.theme.VideoTheme
+import io.getstream.video.android.compose.ui.ComposeStreamCallActivity
 import io.getstream.video.android.core.notifications.NotificationHandler
 import io.getstream.video.android.model.StreamCallId
+import io.getstream.video.android.ui.common.StreamCallActivity
 import java.util.UUID
 
 class MainActivity : ComponentActivity() {

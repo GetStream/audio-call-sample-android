@@ -99,23 +99,6 @@ class AudioCallSampleApp : Application() {
             sdkInstance
         }
 
-        /*// Observe all call events
-        GlobalScope.launch {
-            callEvents().collectLatest {
-                Log.d("AllEventsObserver", "$it")
-            }
-        }
-
-        // Whenever there is a RingingCall, send a custom event.
-        sendImAliveOnRingingCall()
-
-        // Observe just "audio_call:123"
-        GlobalScope.launch {
-            callEvents(cid = StreamCallId.fromCallCid("audio_call:123")).collectLatest {
-                Log.d("SingleCallEventsObserver", "$it")
-            }
-        }*/
-
         return preparedInstance
     }
 
