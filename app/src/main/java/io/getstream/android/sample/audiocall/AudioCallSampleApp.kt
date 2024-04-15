@@ -52,6 +52,7 @@ class AudioCallSampleApp : Application() {
             if (userData !is UserData.NoUser) {
                 // We have a logged in user, we are going to initialize the SDK.
                 streamVideo(userData)
+                sendImAliveOnRingingCall()
             }
         }
     }
@@ -88,6 +89,9 @@ class AudioCallSampleApp : Application() {
                     provideToken(userId)
                 },
                 notificationConfig = NotificationConfig(
+                    // Make the notification low prio if the app is in foreground, so its not visible as a popup, since we want to handle
+                    // the incoming call in full screen when app is running.
+                    hideRingingNotificationInForeground = true,
                     // Make sure that the provider name is equal to the "Name" of the configuration in Stream Dashboard.
                     pushDeviceGenerators = listOf(FirebasePushDeviceGenerator(providerName = NotificationService.FIREBASE_CONFIG_NAME_ON_DASHBOARD))
                 ),

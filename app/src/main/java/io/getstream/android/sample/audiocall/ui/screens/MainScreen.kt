@@ -1,8 +1,8 @@
-package io.getstream.android.sample.audiocall.screens
+package io.getstream.android.sample.audiocall.ui.screens
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import io.getstream.android.sample.audiocall.screens.call.DialerScreen
+import io.getstream.android.sample.audiocall.ui.screens.call.DialerScreen
 import io.getstream.android.sample.audiocall.videwmodel.MainViewModel.UserUiState
 import io.getstream.video.android.compose.theme.VideoTheme
 

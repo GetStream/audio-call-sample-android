@@ -1,4 +1,4 @@
-package io.getstream.android.sample.audiocall.screens.call
+package io.getstream.android.sample.audiocall.ui.screens.call
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

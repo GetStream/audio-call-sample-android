@@ -1,4 +1,4 @@
-package io.getstream.android.sample.audiocall.screens
+package io.getstream.android.sample.audiocall.ui.screens
 
 import android.Manifest
 import android.os.Build

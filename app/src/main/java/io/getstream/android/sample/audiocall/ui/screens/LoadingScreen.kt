@@ -1,5 +1,6 @@
-package io.getstream.android.sample.audiocall.screens
+package io.getstream.android.sample.audiocall.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
@@ -13,9 +14,9 @@ import io.getstream.video.android.compose.theme.VideoTheme
 fun LoadingScreen() {
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize().background(VideoTheme.colors.baseSheetPrimary)
     ) {
-        CircularProgressIndicator(color = VideoTheme.colors.brandPrimary)
+        CircularProgressIndicator(color = VideoTheme.colors.brandPrimaryLt)
     }
 }
 
