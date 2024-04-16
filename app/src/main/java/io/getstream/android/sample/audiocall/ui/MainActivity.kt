@@ -13,6 +13,7 @@ import io.getstream.android.sample.audiocall.AudioCallSampleApp
 import io.getstream.android.sample.audiocall.ui.screens.MainScreen
 import io.getstream.android.sample.audiocall.videwmodel.MainViewModel
 import io.getstream.video.android.compose.theme.VideoTheme
+import io.getstream.video.android.compose.ui.ComposeStreamCallActivity
 import io.getstream.video.android.core.RingingState
 import io.getstream.video.android.core.StreamVideo
 import io.getstream.video.android.core.notifications.NotificationHandler
@@ -59,7 +60,7 @@ class MainActivity : ComponentActivity() {
                                 true,
                                 action = NotificationHandler.ACTION_OUTGOING_CALL,
                                 // use ComposeStreamCallActivity::class.java for default
-                                clazz = CustomCallActivity::class.java
+                                clazz = ComposeStreamCallActivity::class.java
                             )
                             startActivity(intent)
                         })
@@ -86,7 +87,7 @@ class MainActivity : ComponentActivity() {
                                     true,
                                     NotificationHandler.ACTION_INCOMING_CALL,
                                     // use ComposeStreamCallActivity::class.java for default behavior
-                                    CustomCallActivity::class.java
+                                    ComposeStreamCallActivity::class.java
                                 )
                                 startActivity(intent)
                             }
