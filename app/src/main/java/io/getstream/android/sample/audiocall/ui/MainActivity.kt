@@ -18,7 +18,11 @@ import io.getstream.video.android.core.StreamVideo
 import io.getstream.video.android.core.notifications.NotificationHandler
 import io.getstream.video.android.model.StreamCallId
 import io.getstream.video.android.ui.common.StreamCallActivity
+import io.getstream.video.android.ui.common.StreamCallActivityConfiguration
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -27,6 +31,10 @@ class MainActivity : ComponentActivity() {
     // In a real app you should utilize a different method of creating the view model.
     private val viewModel: MainViewModel =
         MainViewModel(AudioCallSampleApp.instance)
+
+    private val config: StreamCallActivityConfiguration = StreamCallActivityConfiguration(
+        closeScreenOnCallEnded = false,
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +67,8 @@ class MainActivity : ComponentActivity() {
                                 true,
                                 action = NotificationHandler.ACTION_OUTGOING_CALL,
                                 // use ComposeStreamCallActivity::class.java for default
-                                clazz = CustomCallActivity::class.java
+                                clazz = CustomCallActivity::class.java,
+                                configuration = config
                             )
                             startActivity(intent)
                         })
@@ -71,9 +80,12 @@ class MainActivity : ComponentActivity() {
     /*
     Monitors the ringingCall and if any, starts the default call activity.
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun showComposeCallActivityOnIncomingCall() {
         lifecycleScope.launch {
-            StreamVideo.instance().state.ringingCall.collectLatest { call ->
+            StreamVideo.instanceState.flatMapLatest { instance ->
+                instance?.state?.ringingCall ?: flowOf(null)
+            }.collectLatest { call ->
                 if (call != null) {
                     lifecycleScope.launch {
                         // Monitor the ringingState on a non-null call
@@ -86,14 +98,13 @@ class MainActivity : ComponentActivity() {
                                     true,
                                     NotificationHandler.ACTION_INCOMING_CALL,
                                     // use ComposeStreamCallActivity::class.java for default behavior
-                                    CustomCallActivity::class.java
+                                    CustomCallActivity::class.java,
+                                    config
                                 )
                                 startActivity(intent)
                             }
-                            Log.d("LOGG", "$it")
                         }
                     }
-                    Log.d("LOGG", "$call")
                 }
             }
         }
