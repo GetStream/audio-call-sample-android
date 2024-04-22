@@ -10,7 +10,6 @@ import io.getstream.android.push.firebase.FirebasePushDeviceGenerator
 import io.getstream.android.sample.audiocall.notifications.NotificationService
 import io.getstream.android.sample.audiocall.storage.UserData
 import io.getstream.android.sample.audiocall.storage.UserStorage
-import io.getstream.android.sample.audiocall.utils.callEvents
 import io.getstream.android.sample.audiocall.utils.sendImAliveOnRingingCall
 import io.getstream.log.Priority
 import io.getstream.video.android.core.Call
@@ -88,11 +87,7 @@ class AudioCallSampleApp : Application() {
                 geo = GEO.GlobalEdgeNetwork,
                 user = user,
                 token = token,
-                permissionCheck = object : StreamPermissionCheck {
-                    override fun checkAndroidPermissions(context: Context, call: Call): Boolean {
-                        return true
-                    }
-                },
+                crashOnMissingPermission = false,
                 tokenProvider = {
                     provideToken(userId)
                 },
