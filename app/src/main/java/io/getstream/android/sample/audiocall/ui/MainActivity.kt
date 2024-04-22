@@ -34,6 +34,7 @@ class MainActivity : ComponentActivity() {
 
     private val config: StreamCallActivityConfiguration = StreamCallActivityConfiguration(
         closeScreenOnCallEnded = false,
+        canSkiPermissionRationale = false
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
