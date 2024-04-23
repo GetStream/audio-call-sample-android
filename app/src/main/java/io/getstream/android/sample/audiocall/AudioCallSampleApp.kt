@@ -88,6 +88,13 @@ class AudioCallSampleApp : Application() {
                 user = user,
                 token = token,
                 crashOnMissingPermission = false,
+                permissionCheck = object : StreamPermissionCheck {
+                    override fun checkAndroidPermissions(context: Context, call: Call): Boolean {
+                        // Pass for all permissions.
+                        return true
+                    }
+
+                },
                 tokenProvider = {
                     provideToken(userId)
                 },

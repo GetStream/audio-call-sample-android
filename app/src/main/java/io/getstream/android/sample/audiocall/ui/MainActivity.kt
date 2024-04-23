@@ -32,11 +32,6 @@ class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel =
         MainViewModel(AudioCallSampleApp.instance)
 
-    private val config: StreamCallActivityConfiguration = StreamCallActivityConfiguration(
-        closeScreenOnCallEnded = false,
-        canSkiPermissionRationale = false
-    )
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -69,7 +64,6 @@ class MainActivity : ComponentActivity() {
                                 action = NotificationHandler.ACTION_OUTGOING_CALL,
                                 // use ComposeStreamCallActivity::class.java for default
                                 clazz = CustomCallActivity::class.java,
-                                configuration = config
                             )
                             startActivity(intent)
                         })
@@ -100,7 +94,6 @@ class MainActivity : ComponentActivity() {
                                     NotificationHandler.ACTION_INCOMING_CALL,
                                     // use ComposeStreamCallActivity::class.java for default behavior
                                     CustomCallActivity::class.java,
-                                    config
                                 )
                                 startActivity(intent)
                             }

@@ -41,6 +41,8 @@ import io.getstream.video.android.core.notifications.NotificationHandler
 import io.getstream.video.android.model.StreamCallId
 import io.getstream.video.android.ui.common.StreamActivityUiDelegate
 import io.getstream.video.android.ui.common.StreamCallActivity
+import io.getstream.video.android.ui.common.StreamCallActivityConfiguration
+import io.getstream.video.android.ui.common.util.StreamCallActivityDelicateApi
 import java.util.UUID
 
 // Extends the ComposeStreamCallActivity class to provide a custom UI for the calling screen.
@@ -53,6 +55,13 @@ class CustomCallActivity : ComposeStreamCallActivity() {
     // Getter for UI delegate, specifies the custom UI delegate for handling UI related functionality.
     override val uiDelegate: StreamActivityUiDelegate<StreamCallActivity>
         get() = _internalDelegate
+
+    @OptIn(StreamCallActivityDelicateApi::class)
+    override val configuration: StreamCallActivityConfiguration
+        get() = StreamCallActivityConfiguration(
+            closeScreenOnCallEnded = false,
+            canSkiPermissionRationale = false
+        )
 
     // Custom delegate class to define specific UI behaviors and layouts for call states.
     private class CustomUiDelegate : StreamCallActivityComposeDelegate() {
