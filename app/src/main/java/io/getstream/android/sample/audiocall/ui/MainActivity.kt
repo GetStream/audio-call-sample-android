@@ -26,8 +26,7 @@ import java.util.UUID
 class MainActivity : ComponentActivity() {
     // This is just the simplest and fastest way to create the view model without any dependencies
     // In a real app you should utilize a different method of creating the view model.
-    private val viewModel: MainViewModel =
-        MainViewModel(AudioCallSampleApp.instance)
+    private val viewModel: MainViewModel = MainViewModel(AudioCallSampleApp.instance)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,7 +73,7 @@ class MainActivity : ComponentActivity() {
      */
     private fun showComposeCallActivityOnIncomingCall() {
         lifecycleScope.launch {
-            StreamVideo.instance().state.ringingCall.collectLatest { call ->
+            StreamVideo.instanceOrNull()?.state?.ringingCall?.collectLatest { call ->
                 if (call != null) {
                     lifecycleScope.launch {
                         // Monitor the ringingState on a non-null call
@@ -100,4 +99,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-

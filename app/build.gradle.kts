@@ -55,14 +55,11 @@ android {
 
 dependencies {
     // START - Minimum dependencies for sample app
-    // View model
     // Stream Compose library
-    implementation("io.getstream:stream-video-android-ui-compose:0.5.6")
+    implementation("io.getstream:stream-video-android-ui-compose:0.5.7")
 
     // Stream's firebase push library
     implementation("io.getstream:stream-android-push-firebase:1.1.7")
-    // Desugar required, will be removed in later versions of Stream's library
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     // Firebase bom, used for push notification
     implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
     // Used by the sample app to store data
