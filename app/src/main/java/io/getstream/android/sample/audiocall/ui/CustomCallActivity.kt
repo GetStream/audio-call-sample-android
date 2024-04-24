@@ -97,11 +97,7 @@ class CustomCallActivity : ComposeStreamCallActivity() {
         onSuccess: (suspend (Call) -> Unit)?,
         onError: (suspend (Exception) -> Unit)?
     ) {
-        if (ContextCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.RECORD_AUDIO
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
+        if (isAudioPermissionGranted()) {
             super.accept(call, onSuccess, onError)
         } else {
             acceptPermissionHandler.launch(android.Manifest.permission.RECORD_AUDIO)
