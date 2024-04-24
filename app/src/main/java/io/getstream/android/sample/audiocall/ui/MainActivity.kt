@@ -19,6 +19,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import io.getstream.android.sample.audiocall.AudioCallSampleApp
 import io.getstream.android.sample.audiocall.ui.screens.MainScreen
+import io.getstream.android.sample.audiocall.utils.permissions.isAudioPermissionGranted
+import io.getstream.android.sample.audiocall.utils.permissions.requestAudioPermission
 import io.getstream.android.sample.audiocall.videwmodel.MainViewModel
 import io.getstream.video.android.compose.theme.VideoTheme
 import io.getstream.video.android.core.Call
@@ -83,13 +85,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-    private fun ActivityResultLauncher<String>.requestAudioPermission() =
-        launch(Manifest.permission.RECORD_AUDIO)
-
-    private fun isAudioPermissionGranted() = ContextCompat.checkSelfPermission(
-        this, Manifest.permission.RECORD_AUDIO
-    ) == PackageManager.PERMISSION_GRANTED
 
     /*
     Monitors the ringingCall and if any, starts the default call activity.

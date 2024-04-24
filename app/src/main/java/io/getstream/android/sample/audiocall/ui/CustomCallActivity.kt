@@ -1,6 +1,13 @@
 // This file defines a custom activity for handling audio calls with additional UI features specific to Stream's video calling SDK.
 package io.getstream.android.sample.audiocall.ui
 
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Bundle
+import android.os.PersistableBundle
+import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,7 +31,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.getstream.android.sample.audiocall.utils.permissions.isAudioPermissionGranted
+import io.getstream.android.sample.audiocall.utils.permissions.isCaller
 import io.getstream.android.sample.audiocall.utils.receiverActive
 import io.getstream.video.android.compose.theme.VideoTheme
 import io.getstream.video.android.compose.ui.ComposeStreamCallActivity
@@ -36,6 +46,7 @@ import io.getstream.video.android.compose.ui.components.participants.internal.Pa
 import io.getstream.video.android.core.Call
 import io.getstream.video.android.core.MemberState
 import io.getstream.video.android.core.call.state.CallAction
+import io.getstream.video.android.core.call.state.LeaveCall
 import io.getstream.video.android.core.model.CallStatus
 import io.getstream.video.android.core.notifications.NotificationHandler
 import io.getstream.video.android.model.StreamCallId
@@ -56,12 +67,54 @@ class CustomCallActivity : ComposeStreamCallActivity() {
     override val uiDelegate: StreamActivityUiDelegate<StreamCallActivity>
         get() = _internalDelegate
 
+    private lateinit var acceptPermissionHandler: ActivityResultLauncher<String>
+
     @OptIn(StreamCallActivityDelicateApi::class)
     override val configuration: StreamCallActivityConfiguration
         get() = StreamCallActivityConfiguration(
             closeScreenOnCallEnded = false,
             canSkiPermissionRationale = false
         )
+
+    override fun onCreate(
+        savedInstanceState: Bundle?,
+        persistentState: PersistableBundle?,
+        call: Call
+    ) {
+        super.onCreate(savedInstanceState, persistentState, call)
+        acceptPermissionHandler = registerForActivityResult(
+            ActivityResultContracts.RequestPermission(),
+        ) { granted ->
+            if (intent.action == NotificationHandler.ACTION_ACCEPT_CALL && granted) {
+                accept(call)
+            }
+        }
+    }
+
+    @OptIn(StreamCallActivityDelicateApi::class)
+    override fun accept(
+        call: Call,
+        onSuccess: (suspend (Call) -> Unit)?,
+        onError: (suspend (Exception) -> Unit)?
+    ) {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            super.accept(call, onSuccess, onError)
+        } else {
+            acceptPermissionHandler.launch(android.Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
+    override fun onCallAction(call: Call, action: CallAction) {
+        if (action is LeaveCall && !isAudioPermissionGranted()) {
+            finish()
+        } else {
+            super.onCallAction(call, action)
+        }
+    }
 
     // Custom delegate class to define specific UI behaviors and layouts for call states.
     private class CustomUiDelegate : StreamCallActivityComposeDelegate() {
@@ -159,7 +212,7 @@ class CustomCallActivity : ComposeStreamCallActivity() {
         // Defines the UI shown when the call is disconnected.
         @Composable
         override fun StreamCallActivity.CallDisconnectedContent(call: Call) {
-            if (intent.action == NotificationHandler.ACTION_OUTGOING_CALL) {
+            if (isCaller()) {
                 // Display a UI allowing the user to close the call or redial.
                 Box(
                     modifier = Modifier
