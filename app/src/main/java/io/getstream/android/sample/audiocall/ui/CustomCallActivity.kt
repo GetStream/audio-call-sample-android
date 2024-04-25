@@ -2,9 +2,11 @@
 package io.getstream.android.sample.audiocall.ui
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.PersistableBundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -45,11 +47,13 @@ import io.getstream.video.android.compose.ui.components.participants.Participant
 import io.getstream.video.android.compose.ui.components.participants.internal.ParticipantInformation
 import io.getstream.video.android.core.Call
 import io.getstream.video.android.core.MemberState
+import io.getstream.video.android.core.StreamVideo
 import io.getstream.video.android.core.call.state.CallAction
 import io.getstream.video.android.core.call.state.LeaveCall
 import io.getstream.video.android.core.model.CallStatus
 import io.getstream.video.android.core.notifications.NotificationHandler
 import io.getstream.video.android.model.StreamCallId
+import io.getstream.video.android.model.streamCallId
 import io.getstream.video.android.ui.common.StreamActivityUiDelegate
 import io.getstream.video.android.ui.common.StreamCallActivity
 import io.getstream.video.android.ui.common.StreamCallActivityConfiguration
@@ -66,6 +70,8 @@ class CustomCallActivity : ComposeStreamCallActivity() {
     // Getter for UI delegate, specifies the custom UI delegate for handling UI related functionality.
     override val uiDelegate: StreamActivityUiDelegate<StreamCallActivity>
         get() = _internalDelegate
+
+    private var skipOnce = false
 
     private lateinit var acceptPermissionHandler: ActivityResultLauncher<String>
 
@@ -87,6 +93,18 @@ class CustomCallActivity : ComposeStreamCallActivity() {
         ) { granted ->
             if (intent.action == NotificationHandler.ACTION_ACCEPT_CALL && granted) {
                 accept(call)
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        if (intent?.action == NotificationHandler.ACTION_ACCEPT_CALL) {
+            val activeCall = StreamVideo.instance().state.activeCall.value
+            if (activeCall != null) {
+                end(activeCall)
+                finish()
+                startActivity(intent)
             }
         }
     }
@@ -208,6 +226,7 @@ class CustomCallActivity : ComposeStreamCallActivity() {
         // Defines the UI shown when the call is disconnected.
         @Composable
         override fun StreamCallActivity.CallDisconnectedContent(call: Call) {
+            Log.d("LOGG", "Call disconnected!!")
             if (isCaller()) {
                 // Display a UI allowing the user to close the call or redial.
                 Box(
