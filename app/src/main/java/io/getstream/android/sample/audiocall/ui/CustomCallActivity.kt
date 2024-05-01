@@ -82,7 +82,7 @@ class CustomCallActivity : ComposeStreamCallActivity() {
         .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
         .build()
 
-    private val networkCallback = object : ConneㅂctivityManager.NetworkCallback() {
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         // lost network connection
         override fun onLost(network: Network) {
             super.onLost(network)
