@@ -24,6 +24,7 @@ import io.getstream.android.sample.audiocall.utils.permissions.requestAudioPermi
 import io.getstream.android.sample.audiocall.videwmodel.MainViewModel
 import io.getstream.video.android.compose.theme.VideoTheme
 import io.getstream.video.android.core.Call
+import io.getstream.video.android.compose.ui.ComposeStreamCallActivity
 import io.getstream.video.android.core.RingingState
 import io.getstream.video.android.core.StreamVideo
 import io.getstream.video.android.core.notifications.NotificationHandler

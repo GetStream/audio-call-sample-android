@@ -23,25 +23,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- If there is a need to override the default behavior of the StreamCallActivity
-             we must declare a new activity in manifest that will handle all the intents. -->
-        <activity
-            android:name=".ui.CustomCallActivity"
-            android:supportsPictureInPicture="true"
-            android:showOnLockScreen="true"
-            android:showWhenLocked="true"
-            android:launchMode="singleTop"
-            android:exported="false">
-            <intent-filter android:priority="1">
-                <action android:name="io.getstream.video.android.action.INCOMING_CALL" />
-                <action android:name="io.getstream.video.android.action.NOTIFICATION" />
-                <action android:name="io.getstream.video.android.action.LIVE_CALL" />
-                <action android:name="io.getstream.video.android.action.ONGOING_CALL" />
-                <action android:name="io.getstream.video.android.action.ACCEPT_CALL" />
-                <action android:name="io.getstream.video.android.action.OUTGOING_CALL" />
-            </intent-filter>
-        </activity>
     </application>
 
 </manifest>
