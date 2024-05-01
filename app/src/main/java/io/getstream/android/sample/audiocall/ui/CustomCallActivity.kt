@@ -2,9 +2,14 @@
 package io.getstream.android.sample.audiocall.ui
 
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -70,6 +75,30 @@ class CustomCallActivity : ComposeStreamCallActivity() {
 
     private lateinit var acceptPermissionHandler: ActivityResultLauncher<String>
 
+    // network requests and callback for connectivity observation
+    private val networkRequest = NetworkRequest.Builder()
+        .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+        .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+        .build()
+
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+        // lost network connection
+        override fun onLost(network: Network) {
+            super.onLost(network)
+            val activeCall = StreamVideo.instance().state.activeCall.value
+            if (activeCall != null) {
+                end(activeCall)
+            }
+            Toast.makeText(
+                this@CustomCallActivity,
+                "Check out your network status!",
+                Toast.LENGTH_SHORT
+            ).show()
+            finish()
+        }
+    }
+
     @OptIn(StreamCallActivityDelicateApi::class)
     override val configuration: StreamCallActivityConfiguration
         get() = StreamCallActivityConfiguration(
@@ -90,6 +119,11 @@ class CustomCallActivity : ComposeStreamCallActivity() {
                 accept(call)
             }
         }
+
+        // register the network connectivity observer
+        val connectivityManager =
+            getSystemService(ConnectivityManager::class.java) as ConnectivityManager
+        connectivityManager.requestNetwork(networkRequest, networkCallback)
     }
 
     override fun onNewIntent(intent: Intent?) {
