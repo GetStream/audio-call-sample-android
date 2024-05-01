@@ -105,7 +105,7 @@ class CustomCallActivity : ComposeStreamCallActivity() {
         persistentState: PersistableBundle?,
         call: Call
     ) {
-        super.onCreate(savedInstanceState, persqistentState, call)
+        super.onCreate(savedInstanceState, persistentState, call)
         acceptPermissionHandler = registerForActivityResult(
             ActivityResultContracts.RequestPermission(),
         ) { granted ->
