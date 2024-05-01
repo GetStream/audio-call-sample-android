@@ -9,6 +9,7 @@ import android.net.NetworkRequest
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -81,15 +82,20 @@ class CustomCallActivity : ComposeStreamCallActivity() {
         .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
         .build()
 
-    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+    private val networkCallback = object : ConneㅂctivityManager.NetworkCallback() {
         // lost network connection
         override fun onLost(network: Network) {
             super.onLost(network)
             val activeCall = StreamVideo.instance().state.activeCall.value
             if (activeCall != null) {
                 end(activeCall)
-                finish()
             }
+            Toast.makeText(
+                this@CustomCallActivity,
+                "Check out your network status!",
+                Toast.LENGTH_SHORT
+            ).show()
+            finish()
         }
     }
 
