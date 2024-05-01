@@ -1,6 +1,7 @@
 package io.getstream.android.sample.audiocall
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
@@ -9,15 +10,16 @@ import io.getstream.android.push.firebase.FirebasePushDeviceGenerator
 import io.getstream.android.sample.audiocall.notifications.NotificationService
 import io.getstream.android.sample.audiocall.storage.UserData
 import io.getstream.android.sample.audiocall.storage.UserStorage
-import io.getstream.android.sample.audiocall.utils.callEvents
 import io.getstream.android.sample.audiocall.utils.sendImAliveOnRingingCall
 import io.getstream.log.Priority
+import io.getstream.video.android.core.Call
 import io.getstream.video.android.core.GEO
 import io.getstream.video.android.core.StreamVideo
 import io.getstream.video.android.core.StreamVideoBuilder
 import io.getstream.video.android.core.logging.HttpLoggingLevel
 import io.getstream.video.android.core.logging.LoggingLevel
 import io.getstream.video.android.core.notifications.NotificationConfig
+import io.getstream.video.android.core.permission.android.StreamPermissionCheck
 import io.getstream.video.android.model.StreamCallId
 import io.getstream.video.android.model.User
 import io.getstream.video.android.model.UserType
@@ -85,6 +87,14 @@ class AudioCallSampleApp : Application() {
                 geo = GEO.GlobalEdgeNetwork,
                 user = user,
                 token = token,
+                crashOnMissingPermission = false,
+                permissionCheck = object : StreamPermissionCheck {
+                    override fun checkAndroidPermissions(context: Context, call: Call): Boolean {
+                        // Pass for all permissions.
+                        return true
+                    }
+
+                },
                 tokenProvider = {
                     provideToken(userId)
                 },
