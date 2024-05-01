@@ -1,13 +1,10 @@
 // This file defines a custom activity for handling audio calls with additional UI features specific to Stream's video calling SDK.
 package io.getstream.android.sample.audiocall.ui
 
-import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -33,7 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.getstream.android.sample.audiocall.utils.permissions.isAudioPermissionGranted
 import io.getstream.android.sample.audiocall.utils.permissions.isCaller
@@ -45,7 +41,7 @@ import io.getstream.video.android.compose.ui.components.call.controls.actions.Ac
 import io.getstream.video.android.compose.ui.components.call.controls.actions.GenericAction
 import io.getstream.video.android.compose.ui.components.participants.ParticipantAvatars
 import io.getstream.video.android.compose.ui.components.participants.internal.ParticipantInformation
-import io.getstream.video.android.core.Callq
+import io.getstream.video.android.core.Call
 import io.getstream.video.android.core.MemberState
 import io.getstream.video.android.core.StreamVideo
 import io.getstream.video.android.core.call.state.CallAction
@@ -53,7 +49,6 @@ import io.getstream.video.android.core.call.state.LeaveCall
 import io.getstream.video.android.core.model.CallStatus
 import io.getstream.video.android.core.notifications.NotificationHandler
 import io.getstream.video.android.model.StreamCallId
-import io.getstream.video.android.model.streamCallId
 import io.getstream.video.android.ui.common.StreamActivityUiDelegate
 import io.getstream.video.android.ui.common.StreamCallActivity
 import io.getstream.video.android.ui.common.StreamCallActivityConfiguration
