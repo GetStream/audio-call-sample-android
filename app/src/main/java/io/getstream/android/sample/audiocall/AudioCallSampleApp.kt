@@ -2,7 +2,6 @@ package io.getstream.android.sample.audiocall
 
 import android.app.Application
 import android.content.Context
-import android.util.Log
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import com.google.firebase.FirebaseApp
@@ -10,6 +9,7 @@ import io.getstream.android.push.firebase.FirebasePushDeviceGenerator
 import io.getstream.android.sample.audiocall.notifications.NotificationService
 import io.getstream.android.sample.audiocall.storage.UserData
 import io.getstream.android.sample.audiocall.storage.UserStorage
+import io.getstream.android.sample.audiocall.utils.rejectCallsFromTheSameUser
 import io.getstream.android.sample.audiocall.utils.sendImAliveOnRingingCall
 import io.getstream.log.Priority
 import io.getstream.video.android.core.Call
@@ -20,15 +20,11 @@ import io.getstream.video.android.core.logging.HttpLoggingLevel
 import io.getstream.video.android.core.logging.LoggingLevel
 import io.getstream.video.android.core.notifications.NotificationConfig
 import io.getstream.video.android.core.permission.android.StreamPermissionCheck
-import io.getstream.video.android.model.StreamCallId
 import io.getstream.video.android.model.User
 import io.getstream.video.android.model.UserType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class AudioCallSampleApp : Application() {
@@ -55,6 +51,7 @@ class AudioCallSampleApp : Application() {
                 // We have a logged in user, we are going to initialize the SDK.
                 streamVideo(userData)
                 sendImAliveOnRingingCall()
+                rejectCallsFromTheSameUser()
             }
         }
     }

@@ -23,13 +23,15 @@ import kotlinx.coroutines.plus
 import org.openapitools.client.models.CustomVideoEvent
 
 const val ALIVE_KEY = "v=fNFzfwLM72c"
+const val BUSY_KEY = "v=weoiyha213781"
 const val USER_KEY = "user-key"
 
 // Utilities
 /**
  * Creates a default coroutine scope for monitoring events on IO thread.
  */
-fun defaultCoroutineScope(baseScope: CoroutineScope = AudioCallSampleApp.applicationScope) = baseScope + Dispatchers.IO
+fun defaultCoroutineScope(baseScope: CoroutineScope = AudioCallSampleApp.applicationScope) =
+    baseScope + Dispatchers.IO
 
 /**
  * Create a default buffered flow.
@@ -61,13 +63,50 @@ fun sendImAliveOnRingingCall(scope: CoroutineScope = defaultCoroutineScope()) {
 }
 
 /**
+ * When ringing call is updated, send I AM ALIVE event.
+ */
+fun rejectCallsFromTheSameUser(scope: CoroutineScope = defaultCoroutineScope()) {
+    scope.launch {
+        val instance = StreamVideo.instance()
+        combine(
+            instance.state.ringingCall.flatMapLatest {
+                it?.state?.ringingState ?: flowOf(null)
+            }, instance.state.ringingCall, instance.state.activeCall
+        ) { state, ringing, active ->
+            Triple(state, ringing, active)
+        }.collect {
+            if (it.first is RingingState.Active) {
+                // Check active call.
+                val active = it.third
+                Log.d("BUSY", "ringing: ${it.second?.cid}, active: ${it.third?.cid}")
+                if (active != null) {
+                    val caller = it.second?.state?.members?.value?.filterNot { member ->
+                        member.user.id == instance.userId
+                    }?.first()
+                    val currentCallCaller = active.state.members.value.filterNot { member ->
+                        member.user.id == instance.userId
+                    }.first()
+                    if (caller?.user?.id == currentCallCaller.user.id) {
+                        it.second?.sendCustomEvent(
+                            mapOf(Pair(BUSY_KEY, true), Pair(USER_KEY, instance.userId))
+                        )
+                        // Will reject the incoming call.
+                        it.second?.reject()
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
  * Will map any [customEvents] to true/false depending if the "alive"
  * event was received by another user.
  */
 fun Call.receiverActive() = customEvents(ALIVE_KEY).map {
-        val originatorUser = it.custom.getOrDefault(USER_KEY, null)
-        originatorUser != state.me.value?.userId
-    }
+    val originatorUser = it.custom.getOrDefault(USER_KEY, null)
+    originatorUser != state.me.value?.userId
+}
 
 /**
  * Monitor all custom events.
