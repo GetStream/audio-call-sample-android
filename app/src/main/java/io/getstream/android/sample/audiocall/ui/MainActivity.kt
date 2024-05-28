@@ -1,30 +1,27 @@
 package io.getstream.android.sample.audiocall.ui
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import io.getstream.android.sample.audiocall.AudioCallSampleApp
 import io.getstream.android.sample.audiocall.ui.screens.MainScreen
+import io.getstream.android.sample.audiocall.utils.permissions.AutoStartPermissionInfo.alreadyAskedForAutoStart
+import io.getstream.android.sample.audiocall.utils.permissions.AutoStartPermissionInfo.showAutoStartPermissionRequest
+import io.getstream.android.sample.audiocall.utils.permissions.componentNames
 import io.getstream.android.sample.audiocall.utils.permissions.isAudioPermissionGranted
+import io.getstream.android.sample.audiocall.utils.permissions.isIgnoringBatteryOptimizations
 import io.getstream.android.sample.audiocall.utils.permissions.requestAudioPermission
+import io.getstream.android.sample.audiocall.utils.permissions.requestIgnoreBatteryOptimizations
 import io.getstream.android.sample.audiocall.videwmodel.MainViewModel
 import io.getstream.video.android.compose.theme.VideoTheme
 import io.getstream.video.android.core.Call
-import io.getstream.video.android.compose.ui.ComposeStreamCallActivity
 import io.getstream.video.android.core.RingingState
 import io.getstream.video.android.core.StreamVideo
 import io.getstream.video.android.core.notifications.NotificationHandler
@@ -61,7 +58,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-
         // Proceed with set content
         setContent {
             VideoTheme {
@@ -84,6 +80,22 @@ class MainActivity : ComponentActivity() {
                     })
                 }
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        checkBatteryAndAutoStartPermissions()
+    }
+
+    private fun checkBatteryAndAutoStartPermissions() {
+        if (!isIgnoringBatteryOptimizations()) {
+            // If we are under battery optimization request to disable it.
+            requestIgnoreBatteryOptimizations()
+        }
+        if (!alreadyAskedForAutoStart()) {
+            // We need to check if we can ask for auto start permission.
+            showAutoStartPermissionRequest(componentNames)
         }
     }
 
