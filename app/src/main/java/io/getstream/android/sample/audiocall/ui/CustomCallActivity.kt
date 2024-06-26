@@ -36,6 +36,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.getstream.android.sample.audiocall.AudioCallSampleApp
+import io.getstream.android.sample.audiocall.storage.UserStorage
 import io.getstream.android.sample.audiocall.utils.permissions.isAudioPermissionGranted
 import io.getstream.android.sample.audiocall.utils.permissions.isCaller
 import io.getstream.android.sample.audiocall.utils.receiverActive
@@ -58,10 +60,10 @@ import io.getstream.video.android.ui.common.StreamActivityUiDelegate
 import io.getstream.video.android.ui.common.StreamCallActivity
 import io.getstream.video.android.ui.common.StreamCallActivityConfiguration
 import io.getstream.video.android.ui.common.util.StreamCallActivityDelicateApi
+import kotlinx.coroutines.runBlocking
 import java.util.UUID
 
 // Extends the ComposeStreamCallActivity class to provide a custom UI for the calling screen.
-@Suppress("UNCHECKED_CAST")
 class CustomCallActivity : ComposeStreamCallActivity() {
 
     // Internal delegate to customize the UI aspects of the call.
@@ -70,8 +72,6 @@ class CustomCallActivity : ComposeStreamCallActivity() {
     // Getter for UI delegate, specifies the custom UI delegate for handling UI related functionality.
     override val uiDelegate: StreamActivityUiDelegate<StreamCallActivity>
         get() = _internalDelegate
-
-    private var skipOnce = false
 
     private lateinit var acceptPermissionHandler: ActivityResultLauncher<String>
 
@@ -105,6 +105,16 @@ class CustomCallActivity : ComposeStreamCallActivity() {
             closeScreenOnCallEnded = false,
             canSkiPermissionRationale = false
         )
+
+    @StreamCallActivityDelicateApi
+    override fun onPreCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
+        if (!StreamVideo.isInstalled) {
+            // You do not have to use runBlocking to initialize the StreamVideo instance. It's only for the purpose of loading the mock user.
+            val user = runBlocking { UserStorage.loadUser(AudioCallSampleApp.instance) }
+            AudioCallSampleApp.instance.streamVideo(user)
+        }
+         super.onPreCreate(savedInstanceState, persistentState)
+    }
 
     override fun onCreate(
         savedInstanceState: Bundle?,
