@@ -54,6 +54,7 @@ import io.getstream.video.android.core.call.state.LeaveCall
 import io.getstream.video.android.core.model.CallStatus
 import io.getstream.video.android.core.notifications.NotificationHandler
 import io.getstream.video.android.model.StreamCallId
+import io.getstream.video.android.model.streamCallId
 import io.getstream.video.android.ui.common.StreamActivityUiDelegate
 import io.getstream.video.android.ui.common.StreamCallActivity
 import io.getstream.video.android.ui.common.StreamCallActivityConfiguration
@@ -106,29 +107,34 @@ class CustomCallActivity : ComposeStreamCallActivity() {
             canSkiPermissionRationale = false
         )
 
+    override fun onPreCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
+        super.onPreCreate(savedInstanceState, persistentState)
+        acceptPermissionHandler = registerForActivityResult(
+            ActivityResultContracts.RequestPermission(),
+        ) { granted ->
+            if (intent.action == NotificationHandler.ACTION_ACCEPT_CALL && granted) {
+                call(intent.streamCallId(NotificationHandler.INTENT_EXTRA_CALL_CID)!!, onSuccess = {
+                    accept(it)
+                })
+            }
+        }
+    }
+
     override fun onCreate(
         savedInstanceState: Bundle?,
         persistentState: PersistableBundle?,
         call: Call
     ) {
         super.onCreate(savedInstanceState, persistentState, call)
-        acceptPermissionHandler = registerForActivityResult(
-            ActivityResultContracts.RequestPermission(),
-        ) { granted ->
-            if (intent.action == NotificationHandler.ACTION_ACCEPT_CALL && granted) {
-                accept(call)
-            }
-        }
-
         // register the network connectivity observer
         val connectivityManager =
             getSystemService(ConnectivityManager::class.java) as ConnectivityManager
         connectivityManager.requestNetwork(networkRequest, networkCallback)
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        if (intent?.action == NotificationHandler.ACTION_ACCEPT_CALL) {
+        if (intent.action == NotificationHandler.ACTION_ACCEPT_CALL) {
             val activeCall = StreamVideo.instance().state.activeCall.value
             if (activeCall != null) {
                 end(activeCall)
