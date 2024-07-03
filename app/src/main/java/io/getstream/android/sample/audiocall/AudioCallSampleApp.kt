@@ -7,6 +7,7 @@ import androidx.compose.ui.text.intl.Locale
 import com.google.firebase.FirebaseApp
 import io.getstream.android.push.firebase.FirebasePushDeviceGenerator
 import io.getstream.android.sample.audiocall.notifications.NotificationService
+import io.getstream.android.sample.audiocall.notifications.RejectBusyNotificationHandler
 import io.getstream.android.sample.audiocall.storage.UserData
 import io.getstream.android.sample.audiocall.storage.UserStorage
 import io.getstream.android.sample.audiocall.utils.rejectCallsFromTheSameUser
@@ -96,6 +97,8 @@ class AudioCallSampleApp : Application() {
                     provideToken(userId)
                 },
                 notificationConfig = NotificationConfig(
+                    // Custom  notification handler
+                    notificationHandler = RejectBusyNotificationHandler(this),
                     // Make the notification low prio if the app is in foreground, so its not visible as a popup, since we want to handle
                     // the incoming call in full screen when app is running.
                     hideRingingNotificationInForeground = true,
