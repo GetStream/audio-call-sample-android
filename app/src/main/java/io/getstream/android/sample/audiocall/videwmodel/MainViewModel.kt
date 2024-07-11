@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.getstream.android.sample.audiocall.AudioCallSampleApp
+import io.getstream.android.sample.audiocall.expirableToken
 import io.getstream.android.sample.audiocall.storage.UserData
 import io.getstream.android.sample.audiocall.storage.UserStorage
 import io.getstream.video.android.core.StreamVideo
@@ -80,10 +81,10 @@ class MainViewModel(application: Application) : ViewModel() {
      */
     fun login(context: Context, userId: String, token: String?): Job {
         // We'll generate a new dev token if we do not manually input the token.
-        val actualToken = token.takeUnless {
-            it.isNullOrBlank()
-        } ?: StreamVideo.devToken(userId)
         return viewModelScope.launch {
+            val actualToken = token.takeUnless {
+                it.isNullOrBlank()
+            } ?: expirableToken(userId)
             // Store the entered credentials to simulate logged in session
             UserStorage.store(
                 context, UserData.AudioCallUser(userId, actualToken)

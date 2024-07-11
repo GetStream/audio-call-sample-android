@@ -56,7 +56,7 @@ android {
 dependencies {
     // START - Minimum dependencies for sample app
     // Stream Compose library
-    implementation("io.getstream:stream-video-android-ui-compose:1.0.9")
+    implementation("io.getstream:stream-video-android-ui-compose:1.0.11-local-20240711122904")
 
     // Stream's firebase push library
     implementation("io.getstream:stream-android-push-firebase:1.1.7")
@@ -66,6 +66,14 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation("com.google.accompanist:accompanist-permissions:0.35.0-alpha")
     // END - Minimum dependencies for audio call
+
+
+    // Retrofit
+    // Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+
+    // Gson converter factory for Retrofit
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

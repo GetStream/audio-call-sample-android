@@ -6,6 +6,7 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import com.google.firebase.FirebaseApp
 import io.getstream.android.push.firebase.FirebasePushDeviceGenerator
+import io.getstream.android.sample.audiocall.auth.Client
 import io.getstream.android.sample.audiocall.notifications.NotificationService
 import io.getstream.android.sample.audiocall.notifications.RejectBusyNotificationHandler
 import io.getstream.android.sample.audiocall.storage.UserData
@@ -13,6 +14,7 @@ import io.getstream.android.sample.audiocall.storage.UserStorage
 import io.getstream.android.sample.audiocall.utils.rejectCallsFromTheSameUser
 import io.getstream.android.sample.audiocall.utils.sendImAliveOnRingingCall
 import io.getstream.log.Priority
+import io.getstream.log.taggedLogger
 import io.getstream.video.android.core.Call
 import io.getstream.video.android.core.GEO
 import io.getstream.video.android.core.StreamVideo
@@ -29,6 +31,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.runBlocking
 
 class AudioCallSampleApp : Application() {
+
+    val logger by taggedLogger("AudioCallApp")
 
     companion object {
         lateinit var instance: AudioCallSampleApp
@@ -94,6 +98,7 @@ class AudioCallSampleApp : Application() {
 
                 },
                 tokenProvider = {
+                    logger.d { "[tokenProvider] Refreshing the token." }
                     provideToken(userId)
                 },
                 notificationConfig = NotificationConfig(
@@ -118,8 +123,15 @@ class AudioCallSampleApp : Application() {
 
     private suspend fun provideToken(userId: String): String {
         // If your tokens are expiring they can be updated here.
-        val newToken = StreamVideo.devToken(userId)
+        val newToken = expirableToken(userId)
         UserStorage.updateToken(instance, newToken)
         return newToken
     }
+}
+
+
+
+suspend fun expirableToken(userId: String): String {
+    require(userId.isNotEmpty()) { "User id must not be empty" }
+    return Client.getToken(userId).token
 }

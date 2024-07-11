@@ -328,7 +328,7 @@ class CustomCallActivity : ComposeStreamCallActivity() {
                                                 putExtra(
                                                     NotificationHandler.INTENT_EXTRA_CALL_CID,
                                                     StreamCallId(
-                                                        "audio_call", UUID.randomUUID().toString()
+                                                        "default", UUID.randomUUID().toString()
                                                     )
                                                 )
                                             }
