@@ -25,7 +25,18 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.LiveStreamActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <activity android:name=".ui.CustomCallActivity" />
+
+        <service android:name=".LiveStreamAutoCloseService" android:foregroundServiceType="shortService" />
     </application>
 
 </manifest>

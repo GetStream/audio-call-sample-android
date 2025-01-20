@@ -71,8 +71,10 @@ class MainActivity : ComponentActivity() {
                         viewModel.login(context = context, userId = userId, token = token)
                     }, onLogout = {
                         viewModel.logout(context = context)
-                    }, onDial = { members ->
-                        if (isAudioPermissionGranted()) {
+                    }, onDial = { callId, members ->
+                        if (callId.isNotEmpty() && callId.startsWith("livestream")) {
+                            startLiveStreamActivity(callId)
+                        } else if (isAudioPermissionGranted()) {
                             startOutgoingCallActivity(members)
                         } else {
                             resultLauncher.requestAudioPermission()
@@ -81,6 +83,21 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private fun startLiveStreamActivity(callId: String) {
+        val intent = StreamCallActivity.callIntent(
+            this,
+            StreamCallId(
+                "livestream", callId
+            ),
+            emptyList(),
+            false,
+            action = NotificationHandler.ACTION_OUTGOING_CALL,
+            // use ComposeStreamCallActivity::class.java for default
+            clazz = LiveStreamActivity::class.java,
+        )
+        startActivity(intent)
     }
 
     override fun onResume() {

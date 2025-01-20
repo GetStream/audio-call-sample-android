@@ -12,7 +12,7 @@ fun MainScreen(
     userState: UserUiState,
     onLogin: (userId: String, token: String?) -> Unit = { _, _ -> },
     onLogout: () -> Unit = {},
-    onDial: (List<String>) -> Unit = { _ -> },
+    onDial: (String, List<String>) -> Unit = { _, _ -> },
 ) {
     when (userState) {
         is UserUiState.Loading -> {

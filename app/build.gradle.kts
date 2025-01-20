@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "io.getstream.android.sample.audiocall"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "io.getstream.android.sample.audiocall"
@@ -34,11 +34,11 @@ android {
     }
     compileOptions {
         // In later versions this will be removed
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
     buildFeatures {
         compose = true
@@ -56,7 +56,8 @@ android {
 dependencies {
     // START - Minimum dependencies for sample app
     // Stream Compose library
-    implementation("io.getstream:stream-video-android-ui-compose:1.0.11")
+    implementation("io.getstream:stream-video-android-ui-compose:1.1.0")
+
 
     // Stream's firebase push library
     implementation("io.getstream:stream-android-push-firebase:1.1.7")

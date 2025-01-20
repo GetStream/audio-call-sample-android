@@ -20,6 +20,7 @@ import io.getstream.video.android.core.StreamVideoBuilder
 import io.getstream.video.android.core.logging.HttpLoggingLevel
 import io.getstream.video.android.core.logging.LoggingLevel
 import io.getstream.video.android.core.notifications.NotificationConfig
+import io.getstream.video.android.core.notifications.internal.service.callServiceConfig
 import io.getstream.video.android.core.permission.android.StreamPermissionCheck
 import io.getstream.video.android.model.User
 import io.getstream.video.android.model.UserType
@@ -67,6 +68,10 @@ class AudioCallSampleApp : Application() {
         // 1. If there is an instance check if its for the correct user, if yes, return the instance
         // 2. If there is no instance or its not for the correct user, create new instance and init
         // the SDK from start.
+        val streamCallConfig = callServiceConfig()
+
+
+
         val preparedInstance = if (sdkInstance == null || sdkInstance.userId != userData.userId) {
             // If there is already an instance, just return it
             // otherwise build a new StreamVideo instance
@@ -93,7 +98,17 @@ class AudioCallSampleApp : Application() {
                     }
 
                 },
-                tokenProvider = {
+                callServiceConfig = streamCallConfig.copy(
+                    callServicePerType = streamCallConfig.callServicePerType.mapValues {
+                        val result = if (it.key == "livestream") {
+                            it.value
+                        } else {
+                            LiveStreamAutoCloseService::class.java
+                        }
+                        result
+                    }
+                ),
+                legacyTokenProvider = {
                     provideToken(userId)
                 },
                 notificationConfig = NotificationConfig(
