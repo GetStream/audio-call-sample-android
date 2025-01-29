@@ -10,6 +10,7 @@ import io.getstream.video.android.core.StreamVideo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import org.openapitools.client.models.CallAcceptedEvent
 import org.openapitools.client.models.CustomVideoEvent
 
 const val ALIVE_KEY = "v=fNFzfwLM72c"
@@ -92,6 +94,31 @@ fun rejectCallsFromTheSameUser(scope: CoroutineScope = defaultCoroutineScope()) 
                         )
                         // Will reject the incoming call.
                         it.second?.reject()
+                    }
+                }
+            }
+        }
+    }
+}
+
+fun rejectCallIfAlreadyAcceptedBySomeone(scope: CoroutineScope = defaultCoroutineScope()) {
+    scope.launch {
+        val instance = StreamVideo.instance()
+        instance.state.ringingCall.flatMapLatest {
+            it?.state?.ringingState ?: flowOf(null)
+        }.combine(instance.state.ringingCall) { state, call ->
+            Pair(state, call)
+        }.collectLatest { pair ->
+            val call = pair.second
+            call?.state?.acceptedBy
+            call?.subscribe {
+                if (it is CallAcceptedEvent) {
+                    Log.d("ANSWERED", "call accepted by: ${it.user.id}")
+                    if (it.user.id != instance.userId && call.state.ringingState.value is RingingState.Incoming) {
+                        launch {
+                            Log.d("ANSWERED", "rejecting call ${it.user.id}!=${instance.userId}")
+                            call.reject()
+                        }
                     }
                 }
             }

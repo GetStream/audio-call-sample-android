@@ -21,16 +21,15 @@ public class LiveStreamAutoCloseService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         GlobalScope.launch {
             // Stop the service after 1 second
-            delay(1000)
+            delay(500)
             stopSelf()
         }
-        println("Dummy service started.")
         createNotificationChannel()
         val notification = NotificationCompat.Builder(this, "LIVESTREAM_NOTIFICATIONS")
             .setContentTitle("Joining livestream")
-            .setContentText("You will shortly join the livestream")
+            .setContentText("Connecting...")
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
         ServiceCompat.startForeground(this, 1, notification, FOREGROUND_SERVICE_TYPE_SHORT_SERVICE)
         return START_STICKY

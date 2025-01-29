@@ -10,6 +10,7 @@ import io.getstream.android.sample.audiocall.notifications.NotificationService
 import io.getstream.android.sample.audiocall.notifications.RejectBusyNotificationHandler
 import io.getstream.android.sample.audiocall.storage.UserData
 import io.getstream.android.sample.audiocall.storage.UserStorage
+import io.getstream.android.sample.audiocall.utils.rejectCallIfAlreadyAcceptedBySomeone
 import io.getstream.android.sample.audiocall.utils.rejectCallsFromTheSameUser
 import io.getstream.android.sample.audiocall.utils.sendImAliveOnRingingCall
 import io.getstream.log.Priority
@@ -26,8 +27,15 @@ import io.getstream.video.android.model.User
 import io.getstream.video.android.model.UserType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.openapitools.client.models.CallAcceptedEvent
 
 class AudioCallSampleApp : Application() {
 
@@ -54,10 +62,10 @@ class AudioCallSampleApp : Application() {
                 streamVideo(userData)
                 sendImAliveOnRingingCall()
                 rejectCallsFromTheSameUser()
+                rejectCallIfAlreadyAcceptedBySomeone()
             }
         }
     }
-
 
     /**
      * Get the [StreamVideo] instance to be used further with the app.
@@ -69,7 +77,6 @@ class AudioCallSampleApp : Application() {
         // 2. If there is no instance or its not for the correct user, create new instance and init
         // the SDK from start.
         val streamCallConfig = callServiceConfig()
-
 
 
         val preparedInstance = if (sdkInstance == null || sdkInstance.userId != userData.userId) {
@@ -98,16 +105,18 @@ class AudioCallSampleApp : Application() {
                     }
 
                 },
-                callServiceConfig = streamCallConfig.copy(
-                    callServicePerType = streamCallConfig.callServicePerType.mapValues {
-                        val result = if (it.key == "livestream") {
-                            it.value
-                        } else {
-                            LiveStreamAutoCloseService::class.java
+                callServiceConfig = callServiceConfig().let { config ->
+                    config.copy(
+                        callServicePerType = config.callServicePerType.mapValues {
+                            val result = if (it.key == "livestream") {
+                                it.value
+                            } else {
+                                LiveStreamAutoCloseService::class.java
+                            }
+                            result
                         }
-                        result
-                    }
-                ),
+                    )
+                },
                 legacyTokenProvider = {
                     provideToken(userId)
                 },
