@@ -1,5 +1,8 @@
 package io.getstream.android.sample.audiocall.ui
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -9,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import io.getstream.android.sample.audiocall.AudioCallSampleApp
 import io.getstream.android.sample.audiocall.ui.screens.MainScreen
@@ -44,6 +48,10 @@ class MainActivity : ComponentActivity() {
 
         // If the app is in foreground during an incoming call, the StreamCallActivity would be launched.
         showComposeCallActivityOnIncomingCall()
+
+        // On Android 13+ the POST_NOTIFICATIONS permission is required for the incoming
+        // ringing notification to be shown to the callee. Request it on startup.
+        requestNotificationPermissionIfNeeded()
 
         val resultLauncher = registerForActivityResult(
             ActivityResultContracts.RequestPermission(),
@@ -86,6 +94,19 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         checkBatteryAndAutoStartPermissions()
+    }
+
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val granted = ContextCompat.checkSelfPermission(
+            this, Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!granted) {
+            registerForActivityResult(
+                ActivityResultContracts.RequestPermission()
+            ) { /* If denied, the system simply won't show ringing notifications. */ }
+                .launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
     }
 
     private fun checkBatteryAndAutoStartPermissions() {

@@ -1,23 +1,16 @@
 package io.getstream.android.sample.audiocall.notifications
 
 import android.app.Application
-import android.app.NotificationManager
-import android.content.Context
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import io.getstream.android.sample.audiocall.utils.BUSY_KEY
-import io.getstream.android.sample.audiocall.utils.USER_KEY
 import io.getstream.video.android.core.StreamVideo
-import io.getstream.video.android.core.notifications.DefaultNotificationHandler
-import io.getstream.video.android.core.notifications.NotificationHandler
+import io.getstream.video.android.core.notifications.handlers.CompatibilityStreamNotificationHandler
 import io.getstream.video.android.model.StreamCallId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 class RejectBusyNotificationHandler(private val context: Application) :
-    DefaultNotificationHandler(application = context) {
+    CompatibilityStreamNotificationHandler(application = context) {
 
         companion object {
             const val TAG = "RejectBusyNotificationHandler"
@@ -26,7 +19,11 @@ class RejectBusyNotificationHandler(private val context: Application) :
     val scope = CoroutineScope(Dispatchers.IO)
 
     // Called when a Ringing Call arrives. (outgoing or incoming)
-    override fun onRingingCall(callId: StreamCallId, callDisplayName: String) {
+    override fun onRingingCall(
+        callId: StreamCallId,
+        callDisplayName: String,
+        payload: Map<String, Any?>
+    ) {
         // Get stream video instance
         val streamVideo = StreamVideo.instanceOrNull()
         val busy = streamVideo?.let { instance ->
@@ -56,7 +53,7 @@ class RejectBusyNotificationHandler(private val context: Application) :
                         if (newCaller.user.id != currentCallCaller.user.id) {
                             Log.d(TAG, "[onRingingCall] - different caller - call super")
                             // If the new caller is different than the current one, proceed as usual
-                            super.onRingingCall(callId, callDisplayName)
+                            super.onRingingCall(callId, callDisplayName, payload)
                         } else {
                             Log.d(TAG,"same caller, don't show notification")
                         }
@@ -66,7 +63,7 @@ class RejectBusyNotificationHandler(private val context: Application) :
                     result.onError {
                         Log.d(TAG, "[onRingingCall] - could not get call - call super")
                         // Proceed as usual, let the error be handled in the parent
-                        super.onRingingCall(callId, callDisplayName)
+                        super.onRingingCall(callId, callDisplayName, payload)
                     }
                 }.invokeOnCompletion {
                     // Just a log to know if the job  completed regardless of outcome
@@ -84,7 +81,7 @@ class RejectBusyNotificationHandler(private val context: Application) :
         // If we are not busy show the notification i.e. call parent
         if (!busy) {
             Log.d(TAG, "[onRingingCall] - not busy - call super")
-            super.onRingingCall(callId, callDisplayName)
+            super.onRingingCall(callId, callDisplayName, payload)
         }
         // else we do nothing and ignore the since we already sent the busy event
     }

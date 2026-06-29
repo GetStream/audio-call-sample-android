@@ -246,10 +246,10 @@ class CustomCallActivity : ComposeStreamCallActivity() {
                         ParticipantInformation(
                             isVideoType = false,
                             callStatus = CallStatus.Calling(callingText),
-                            participants = members,
+                            members = members,
                         )
                         Spacer(modifier = Modifier.size(16.dp))
-                        ParticipantAvatars(participants = members)
+                        ParticipantAvatars(members = members)
                     }
                 },
                 controlsContent = controlsContent,
@@ -269,17 +269,17 @@ class CustomCallActivity : ComposeStreamCallActivity() {
                         .fillMaxSize()
                         .background(VideoTheme.colors.baseSheetPrimary)
                 ) {
-                    io.getstream.video.android.compose.ui.components.call.activecall.AudioCallContent(
+                    io.getstream.video.android.compose.ui.components.call.activecall.AudioOnlyCallContent(
                         call = call,
                         isMicrophoneEnabled = false,
-                        detailsContent = { members, _ ->
+                        detailsContent = { remoteParticipants, _ ->
                             ParticipantInformation(
                                 isVideoType = false,
                                 callStatus = CallStatus.Calling("Disconnected..."),
-                                participants = members,
+                                participants = remoteParticipants,
                             )
                             Spacer(modifier = Modifier.size(16.dp))
-                            ParticipantAvatars(participants = members)
+                            ParticipantAvatars(participants = remoteParticipants)
                         },
                         controlsContent = {
                             // Custom controls for redial and close actions.
