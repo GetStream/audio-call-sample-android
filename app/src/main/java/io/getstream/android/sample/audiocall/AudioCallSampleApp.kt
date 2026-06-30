@@ -17,10 +17,14 @@ import io.getstream.video.android.core.Call
 import io.getstream.video.android.core.GEO
 import io.getstream.video.android.core.StreamVideo
 import io.getstream.video.android.core.StreamVideoBuilder
+import io.getstream.video.android.core.call.CallType
+import io.getstream.video.android.core.notifications.internal.service.CallServiceConfigRegistry
+import io.getstream.video.android.core.notifications.internal.service.DefaultCallConfigurations
 import io.getstream.video.android.core.logging.HttpLoggingLevel
 import io.getstream.video.android.core.logging.LoggingLevel
 import io.getstream.video.android.core.notifications.NotificationConfig
 import io.getstream.video.android.core.permission.android.StreamPermissionCheck
+import io.getstream.video.android.core.socket.common.token.TokenProvider
 import io.getstream.video.android.model.User
 import io.getstream.video.android.model.UserType
 import kotlinx.coroutines.CoroutineScope
@@ -92,9 +96,16 @@ class AudioCallSampleApp : Application() {
                         return true
                     }
 
+                    override fun checkAndroidPermissionsGroup(
+                        context: Context,
+                        call: Call
+                    ): Pair<Boolean, Set<String>> {
+                        // Pass for all permissions, no missing permissions.
+                        return Pair(true, emptySet())
+                    }
                 },
-                tokenProvider = {
-                    provideToken(userId)
+                tokenProvider = object : TokenProvider {
+                    override suspend fun loadToken(): String = provideToken(userId)
                 },
                 notificationConfig = NotificationConfig(
                     // Custom  notification handler
@@ -103,8 +114,20 @@ class AudioCallSampleApp : Application() {
                     // the incoming call in full screen when app is running.
                     hideRingingNotificationInForeground = true,
                     // Make sure that the provider name is equal to the "Name" of the configuration in Stream Dashboard.
-                    pushDeviceGenerators = listOf(FirebasePushDeviceGenerator(providerName = NotificationService.FIREBASE_CONFIG_NAME_ON_DASHBOARD))
+                    pushDeviceGenerators = listOf(
+                        FirebasePushDeviceGenerator(
+                            providerName = NotificationService.FIREBASE_CONFIG_NAME_ON_DASHBOARD,
+                            context = applicationContext
+                        )
+                    )
                 ),
+                // Register the "audio_call" type as an audio-only call. Otherwise the SDK
+                // falls back to the default (camera + microphone) service config, derives
+                // SendVideo + SendAudio capabilities, and then requires the CAMERA
+                // permission - which fails the call for an audio-only app.
+                callServiceConfigRegistry = CallServiceConfigRegistry().apply {
+                    register(CallType.AudioCall.name, DefaultCallConfigurations.audioCall)
+                },
             )
             // Build a new instance
             builder.build()

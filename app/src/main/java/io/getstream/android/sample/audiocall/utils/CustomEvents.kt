@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
-import org.openapitools.client.models.CustomVideoEvent
+import io.getstream.android.video.generated.models.CustomVideoEvent
 
 const val ALIVE_KEY = "v=fNFzfwLM72c"
 const val BUSY_KEY = "v=weoiyha213781"

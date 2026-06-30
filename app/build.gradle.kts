@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "io.getstream.android.sample.audiocall"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "io.getstream.android.sample.audiocall"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -33,12 +33,11 @@ android {
         }
     }
     compileOptions {
-        // In later versions this will be removed
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
     buildFeatures {
         compose = true
@@ -56,15 +55,18 @@ android {
 dependencies {
     // START - Minimum dependencies for sample app
     // Stream Compose library
-    implementation("io.getstream:stream-video-android-ui-compose:1.0.11")
+    implementation(libs.stream.video.android.ui.compose)
 
     // Stream's firebase push library
-    implementation("io.getstream:stream-android-push-firebase:1.1.7")
+    implementation(libs.stream.android.push.firebase)
     // Firebase bom, used for push notification
-    implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
+    implementation(platform(libs.firebase.bom))
     // Used by the sample app to store data
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
-    implementation("com.google.accompanist:accompanist-permissions:0.35.0-alpha")
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.accompanist.permissions)
+    // Required at compile time when subclassing CompatibilityStreamNotificationHandler,
+    // whose constructor references android.support.v4.media.session.MediaSessionCompat.
+    implementation(libs.androidx.media)
     // END - Minimum dependencies for audio call
 
     implementation(libs.androidx.core.ktx)

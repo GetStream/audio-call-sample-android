@@ -25,7 +25,40 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".ui.CustomCallActivity" />
+        <!-- The custom call activity must declare the Stream call-action intent-filter so the
+             SDK routes incoming/outgoing/notification calls to it (instead of the bundled
+             default ComposeStreamCallActivity). A priority higher than the SDK default (1)
+             ensures it is selected. The lock-screen flags allow the ringing screen to show
+             over the lock screen / turn the screen on for incoming calls. -->
+        <activity
+            android:name=".ui.CustomCallActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:showOnLockScreen="true"
+            android:showWhenLocked="true"
+            android:supportsPictureInPicture="true"
+            android:turnScreenOn="true">
+            <intent-filter android:priority="2">
+                <action android:name="io.getstream.video.android.action.INCOMING_CALL" />
+                <action android:name="io.getstream.video.android.action.NOTIFICATION" />
+                <action android:name="io.getstream.video.android.action.LIVE_CALL" />
+                <action android:name="io.getstream.video.android.action.ONGOING_CALL" />
+                <action android:name="io.getstream.video.android.action.ACCEPT_CALL" />
+                <action android:name="io.getstream.video.android.action.OUTGOING_CALL" />
+            </intent-filter>
+        </activity>
+
+        <!-- Firebase messaging service that registers the device token with Stream
+             (using the dashboard provider name) and forwards incoming ringing pushes
+             to the Stream SDK. Without this declaration the service never runs and
+             the callee never receives the ringing notification. -->
+        <service
+            android:name=".notifications.NotificationService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>
