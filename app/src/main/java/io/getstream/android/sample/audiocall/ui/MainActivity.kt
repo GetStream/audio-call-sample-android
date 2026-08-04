@@ -53,18 +53,18 @@ class MainActivity : ComponentActivity() {
         // ringing notification to be shown to the callee. Request it on startup.
         requestNotificationPermissionIfNeeded()
 
-        val resultLauncher = registerForActivityResult(
-            ActivityResultContracts.RequestPermission(),
-        ) { granted ->
-            // Handle the permissions result here
-            if (!granted) {
-                Toast.makeText(
-                    this@MainActivity,
-                    "Permission for audio needs to be granted.",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
+//        val resultLauncher = registerForActivityResult(
+//            ActivityResultContracts.RequestPermission(),
+//        ) { granted ->
+//            // Handle the permissions result here
+//            if (!granted) {
+//                Toast.makeText(
+//                    this@MainActivity,
+//                    "Permission for audio needs to be granted.",
+//                    Toast.LENGTH_LONG
+//                ).show()
+//            }
+//        }
 
         // Proceed with set content
         setContent {
@@ -83,7 +83,7 @@ class MainActivity : ComponentActivity() {
                         if (isAudioPermissionGranted()) {
                             startOutgoingCallActivity(members)
                         } else {
-                            resultLauncher.requestAudioPermission()
+//                            resultLauncher.requestAudioPermission()
                         }
                     })
                 }
@@ -97,10 +97,10 @@ class MainActivity : ComponentActivity() {
             this, Manifest.permission.POST_NOTIFICATIONS
         ) == PackageManager.PERMISSION_GRANTED
         if (!granted) {
-            registerForActivityResult(
-                ActivityResultContracts.RequestPermission()
-            ) { /* If denied, the system simply won't show ringing notifications. */ }
-                .launch(Manifest.permission.POST_NOTIFICATIONS)
+//            registerForActivityResult(
+//                ActivityResultContracts.RequestPermission()
+//            ) { /* If denied, the system simply won't show ringing notifications. */ }
+//                .launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 

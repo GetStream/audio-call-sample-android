@@ -42,9 +42,12 @@ class AudioCallSampleApp : Application() {
     init {
         instance = this
     }
+    val helloWorld  = HelloWorld()
 
     override fun onCreate() {
         super.onCreate()
+        val session = helloWorld.initSession()
+        print(session)
         // Initialize firebase first.
         // Ensure that you have the correct service account credentials updated in the Stream Dashboard.
         FirebaseApp.initializeApp(this)
