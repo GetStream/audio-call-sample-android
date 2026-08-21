@@ -23,6 +23,7 @@ import io.getstream.video.android.core.notifications.internal.service.DefaultCal
 import io.getstream.video.android.core.logging.HttpLoggingLevel
 import io.getstream.video.android.core.logging.LoggingLevel
 import io.getstream.video.android.core.notifications.NotificationConfig
+import io.getstream.video.android.core.notifications.internal.telecom.TelecomConfig
 import io.getstream.video.android.core.permission.android.StreamPermissionCheck
 import io.getstream.video.android.core.socket.common.token.TokenProvider
 import io.getstream.video.android.model.User
@@ -42,12 +43,9 @@ class AudioCallSampleApp : Application() {
     init {
         instance = this
     }
-    val helloWorld  = HelloWorld()
 
     override fun onCreate() {
         super.onCreate()
-        val session = helloWorld.initSession()
-        print(session)
         // Initialize firebase first.
         // Ensure that you have the correct service account credentials updated in the Stream Dashboard.
         FirebaseApp.initializeApp(this)
@@ -129,9 +127,11 @@ class AudioCallSampleApp : Application() {
                 // SendVideo + SendAudio capabilities, and then requires the CAMERA
                 // permission - which fails the call for an audio-only app.
                 callServiceConfigRegistry = CallServiceConfigRegistry().apply {
-                    register(CallType.AudioCall.name, DefaultCallConfigurations.audioCall)
+                    register(CallType.AudioCall.name, DefaultCallConfigurations.audioCall.copy(enableTelecom = true))
                 },
-            )
+                telecomConfig = TelecomConfig(packageName),
+
+            ).useNotificationRingtoneForIncomingCalls(true)
             // Build a new instance
             builder.build()
         } else {

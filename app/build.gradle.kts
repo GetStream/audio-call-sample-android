@@ -29,7 +29,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -60,6 +61,8 @@ dependencies {
     // START - Minimum dependencies for sample app
     // Stream Compose library
     implementation(libs.stream.video.android.ui.compose)
+    implementation(libs.stream.chat.client)
+    implementation(libs.stream.feed.client)
 
     // Stream's firebase push library
     implementation(libs.stream.android.push.firebase)

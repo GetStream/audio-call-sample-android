@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 class NotificationService : FirebaseMessagingService() {
 
     val coroutineScope = CoroutineScope(Dispatchers.IO)
+    val TAG = "NotificationService"
     companion object {
         /** Used as a configuration [providerName] for the Firebase config on Stream website. */
         // This field value should be equal to the configuration name on your stream Dashboard.
@@ -24,6 +25,7 @@ class NotificationService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         // Update device's token on Stream backend
+        Log.d(TAG, "[onNewToken], token: $token")
         coroutineScope.launch {
             val streamVideoInstance = StreamVideo.instanceOrNull()
             if (streamVideoInstance != null) {
@@ -35,6 +37,7 @@ class NotificationService : FirebaseMessagingService() {
                             FIREBASE_CONFIG_NAME_ON_DASHBOARD
                         )
                     )
+                Log.d(TAG, "[onNewToken], device registered: ${result.isSuccess}")
                 if (result.isFailure) {
                     //Retry to create Device
                 }
@@ -49,6 +52,7 @@ class NotificationService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
+        Log.d(TAG, "[onMessageReceived], message.data: ${message.data}")
         try {
             //This will forward the PN's message to Stream SDK and sdk can render the notification
             if (!FirebaseMessagingDelegate.handleRemoteMessage(message)) {
