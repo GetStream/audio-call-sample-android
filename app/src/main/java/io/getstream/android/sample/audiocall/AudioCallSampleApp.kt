@@ -23,6 +23,7 @@ import io.getstream.video.android.core.notifications.internal.service.DefaultCal
 import io.getstream.video.android.core.logging.HttpLoggingLevel
 import io.getstream.video.android.core.logging.LoggingLevel
 import io.getstream.video.android.core.notifications.NotificationConfig
+import io.getstream.video.android.core.notifications.internal.telecom.TelecomConfig
 import io.getstream.video.android.core.permission.android.StreamPermissionCheck
 import io.getstream.video.android.core.socket.common.token.TokenProvider
 import io.getstream.video.android.model.User
@@ -82,7 +83,7 @@ class AudioCallSampleApp : Application() {
             )
             val builder = StreamVideoBuilder(
                 // Only for the purpose of debugging and logging
-                loggingLevel = LoggingLevel(Priority.VERBOSE, HttpLoggingLevel.BODY),
+//                loggingLevel = LoggingLevel(Priority.VERBOSE, HttpLoggingLevel.BODY),
                 context = applicationContext,
                 // Make sure to change to your API key, found in the Stream Dashboard.
                 apiKey = "k436tyde94hj",
@@ -126,8 +127,9 @@ class AudioCallSampleApp : Application() {
                 // SendVideo + SendAudio capabilities, and then requires the CAMERA
                 // permission - which fails the call for an audio-only app.
                 callServiceConfigRegistry = CallServiceConfigRegistry().apply {
-                    register(CallType.AudioCall.name, DefaultCallConfigurations.audioCall)
+                    register(CallType.AudioCall.name, DefaultCallConfigurations.audioCall.copy(enableTelecom = true))
                 },
+                telecomConfig = TelecomConfig(packageName),
             )
             // Build a new instance
             builder.build()

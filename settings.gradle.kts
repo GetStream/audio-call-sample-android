@@ -9,6 +9,14 @@ pluginManagement {
             }
         }
         mavenCentral()
+        maven(url = "https://central.sonatype.com/repository/maven-snapshots/") {
+            content {
+                includeGroupByRegex("io\\.getstream.*")
+            }
+            mavenContent {
+                snapshotsOnly()
+            }
+        }
         gradlePluginPortal()
     }
 }
@@ -18,6 +26,14 @@ dependencyResolutionManagement {
         mavenLocal()
         google()
         mavenCentral()
+        maven(url = "https://central.sonatype.com/repository/maven-snapshots/") {
+            content {
+                includeGroupByRegex("io\\.getstream.*")
+            }
+            mavenContent {
+                snapshotsOnly()
+            }
+        }
     }
 }
 

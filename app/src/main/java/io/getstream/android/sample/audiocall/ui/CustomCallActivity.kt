@@ -107,18 +107,19 @@ class CustomCallActivity : ComposeStreamCallActivity() {
             canSkiPermissionRationale = false
         )
 
-    override fun onPreCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
-        super.onPreCreate(savedInstanceState, persistentState)
-        acceptPermissionHandler = registerForActivityResult(
-            ActivityResultContracts.RequestPermission(),
-        ) { granted ->
-            if (intent.action == NotificationHandler.ACTION_ACCEPT_CALL && granted) {
-                call(intent.streamCallId(NotificationHandler.INTENT_EXTRA_CALL_CID)!!, onSuccess = {
-                    accept(it)
-                })
-            }
-        }
-    }
+//    @OptIn(StreamCallActivityDelicateApi::class)
+//    override fun onPreCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
+//        super.onPreCreate(savedInstanceState, persistentState)
+//        acceptPermissionHandler = registerForActivityResult(
+//            ActivityResultContracts.RequestPermission(),
+//        ) { granted ->
+//            if (intent.action == NotificationHandler.ACTION_ACCEPT_CALL && granted) {
+//                call(intent.streamCallId(NotificationHandler.INTENT_EXTRA_CALL_CID)!!, onSuccess = {
+//                    accept(it)
+//                })
+//            }
+//        }
+//    }
 
     override fun onCreate(
         savedInstanceState: Bundle?,
@@ -132,6 +133,7 @@ class CustomCallActivity : ComposeStreamCallActivity() {
         connectivityManager.requestNetwork(networkRequest, networkCallback)
     }
 
+    @OptIn(StreamCallActivityDelicateApi::class)
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.action == NotificationHandler.ACTION_ACCEPT_CALL) {
