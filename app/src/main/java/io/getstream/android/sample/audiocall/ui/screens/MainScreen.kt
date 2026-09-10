@@ -13,6 +13,8 @@ fun MainScreen(
     onLogin: (userId: String, token: String?) -> Unit = { _, _ -> },
     onLogout: () -> Unit = {},
     onDial: (List<String>) -> Unit = { _ -> },
+    onJoinLiveStreamAsHost: (String) -> Unit= { _ -> },
+    onJoinLiveStreamAsGuest: (String) -> Unit = { _ -> },
 ) {
     when (userState) {
         is UserUiState.Loading -> {
@@ -27,7 +29,13 @@ fun MainScreen(
 
         is UserUiState.Actual -> {
             // Show dial screen
-            DialerScreen(userState = userState, onLogout, onDial)
+            DialerScreen(
+                userState = userState,
+                onLogout,
+                onDial,
+                onJoinLiveStreamAsHost,
+                onJoinLiveStreamAsGuest
+            )
         }
     }
 }

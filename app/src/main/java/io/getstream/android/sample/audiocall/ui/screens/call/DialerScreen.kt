@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Call
@@ -38,10 +39,13 @@ import io.getstream.video.android.compose.ui.components.avatar.UserAvatar
 fun DialerScreen(
     userState: MainViewModel.UserUiState,
     onLogout: () -> Unit = {},
-    onDial: (List<String>) -> Unit
+    onDial: (List<String>) -> Unit,
+    onJoinLiveStreamAsHost: (String) -> Unit,
+    onJoinLiveStreamAsGuest: (String) -> Unit,
 ) {
 
     var userIdsInput by remember { mutableStateOf("") }
+    var livestreamIdInput by remember { mutableStateOf("") }
     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
         UserAndLogoutRow(userState, onLogout)
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -63,6 +67,34 @@ fun DialerScreen(
                 Spacer(modifier = Modifier.height(20.dp))
                 Text("Dial")
             }
+            Spacer(modifier = Modifier.height(20.dp))
+            OutlinedTextField(
+                value = livestreamIdInput,
+                onValueChange = { livestreamIdInput = it },
+                label = { Text(text = "Enter Livestream Call ID") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            Row() {
+                Button(enabled = livestreamIdInput.isNotBlank(), onClick = {
+                    onJoinLiveStreamAsHost(livestreamIdInput)
+                }) {
+                    Icon(imageVector = Icons.Default.Call, contentDescription = "Dial")
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Text("Host")
+                }
+                Spacer(modifier = Modifier.width(20.dp))
+                Button(enabled = livestreamIdInput.isNotBlank(), onClick = {
+                    onJoinLiveStreamAsGuest(livestreamIdInput)
+                }) {
+                    Icon(imageVector = Icons.Default.Call, contentDescription = "Dial")
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Text("Guest")
+                }
+            }
+
         }
     }
 }
@@ -78,7 +110,8 @@ private fun BoxScope.UserAndLogoutRow(
     Row(
         modifier = Modifier.Companion
             .align(Alignment.TopCenter)
-            .fillMaxWidth().padding(20.dp),
+            .fillMaxWidth()
+            .padding(20.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -108,7 +141,7 @@ private fun BoxScope.UserAndLogoutRow(
 @Composable
 private fun DialerPreview() {
     VideoTheme {
-        DialerScreen(MainViewModel.UserUiState.Empty) {
+        DialerScreen(MainViewModel.UserUiState.Empty, {}, {}, {}) {
 
         }
     }

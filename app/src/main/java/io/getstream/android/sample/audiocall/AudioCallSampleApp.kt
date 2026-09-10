@@ -83,7 +83,7 @@ class AudioCallSampleApp : Application() {
             )
             val builder = StreamVideoBuilder(
                 // Only for the purpose of debugging and logging
-                loggingLevel = LoggingLevel(Priority.VERBOSE, HttpLoggingLevel.BODY),
+//                loggingLevel = LoggingLevel(Priority.VERBOSE, HttpLoggingLevel.BODY),
                 context = applicationContext,
                 // Make sure to change to your API key, found in the Stream Dashboard.
                 apiKey = "k436tyde94hj",
@@ -130,8 +130,7 @@ class AudioCallSampleApp : Application() {
                     register(CallType.AudioCall.name, DefaultCallConfigurations.audioCall.copy(enableTelecom = true))
                 },
                 telecomConfig = TelecomConfig(packageName),
-
-            ).useNotificationRingtoneForIncomingCalls(true)
+            )
             // Build a new instance
             builder.build()
         } else {

@@ -10,12 +10,18 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import io.getstream.android.sample.audiocall.AudioCallSampleApp
 import io.getstream.android.sample.audiocall.ui.screens.MainScreen
+import io.getstream.android.sample.audiocall.ui.screens.call.LiveAudience
+import io.getstream.android.sample.audiocall.ui.screens.call.LiveHost
 import io.getstream.android.sample.audiocall.utils.permissions.AutoStartPermissionInfo.alreadyAskedForAutoStart
 import io.getstream.android.sample.audiocall.utils.permissions.AutoStartPermissionInfo.showAutoStartPermissionRequest
 import io.getstream.android.sample.audiocall.utils.permissions.componentNames
@@ -73,19 +79,46 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize(), color = VideoTheme.colors.basePrimary
                 ) {
+                    var screen by remember { mutableStateOf(SCREEN.MAIN) }
+                    var livestreamCallId by remember { mutableStateOf("") }
                     val context = LocalContext.current
                     val userUiState = viewModel.userState
-                    MainScreen(userState = userUiState, onLogin = { userId, token ->
-                        viewModel.login(context = context, userId = userId, token = token)
-                    }, onLogout = {
-                        viewModel.logout(context = context)
-                    }, onDial = { members ->
-                        if (isAudioPermissionGranted()) {
-                            startOutgoingCallActivity(members)
-                        } else {
+                    when(screen){
+                        SCREEN.MAIN->{
+                            MainScreen(userState = userUiState, onLogin = { userId, token ->
+                                viewModel.login(context = context, userId = userId, token = token)
+                            }, onLogout = {
+                                viewModel.logout(context = context)
+                            }, onDial = { members ->
+                                if (isAudioPermissionGranted()) {
+                                    startOutgoingCallActivity(members)
+                                } else {
 //                            resultLauncher.requestAudioPermission()
+                                }
+                            }, onJoinLiveStreamAsHost = {
+                                livestreamCallId = it
+                                screen = SCREEN.LIVESTREAM_HOST
+                            }, onJoinLiveStreamAsGuest = {
+                                livestreamCallId = it
+                                screen = SCREEN.LIVESTREAM_GUEST
+                            }
+                            )
                         }
-                    })
+                        SCREEN.LIVESTREAM_HOST->{
+                            LiveHost(livestreamCallId, StreamVideo.instance()) {
+                                livestreamCallId = ""
+                                screen = SCREEN.MAIN
+                            }
+                        }
+
+                        SCREEN.LIVESTREAM_GUEST->{
+                            LiveAudience(livestreamCallId, StreamVideo.instance()) {
+                                livestreamCallId = ""
+                                screen = SCREEN.MAIN
+                            }
+                        }
+                    }
+
                 }
             }
         }
@@ -170,3 +203,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+enum class SCREEN {
+    MAIN, LIVESTREAM_GUEST, LIVESTREAM_HOST
+}
